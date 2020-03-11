@@ -7,11 +7,14 @@ from sacred import Experiment
 from sacred.stflow import LogFileWriter
 from sacred.observers import FileStorageObserver, MongoObserver
 
+# from utils import CustomFileStorageObserver
+
 # custom config hook
 from utils.yaml_config_hook import yaml_config_hook
 
 
 ex = Experiment("SimCLR")
+
 
 #### file output directory
 ex.observers.append(FileStorageObserver("./logs"))

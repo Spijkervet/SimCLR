@@ -6,6 +6,7 @@ from experiment import ex
 from model import load_model
 from utils import post_config_hook
 
+from modules import LogisticRegression
 
 def train(args, loader, simclr_model, model, criterion, optimizer):
     loss_epoch = 0
@@ -77,7 +78,9 @@ def main(_run, _log):
 
 
     ## Logistic Regression
-    model = torch.nn.Sequential(torch.nn.Linear(simclr_model.n_features, 10)).to(args.device)
+    n_classes = 10 # stl-10
+    model = LogisticRegression(simclr_model.n_features, n_classes)
+    model = model.to(args.device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
     criterion = torch.nn.CrossEntropyLoss()
