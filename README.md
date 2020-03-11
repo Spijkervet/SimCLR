@@ -46,17 +46,45 @@ Set the `model_num` to the epoch number you want to load the checkpoints from (e
 python -m testing.logistic_regression
 ```
 
-## Dependencies
+
+## Configuration
+The configuration of training can be found in: `config/config.yaml`. I personally prefer to use files instead of long strings of arguments when configuring a run. An example `config.yaml` file:
 ```
-torch
-torchvision
-tensorboard
-sacred
-pyyaml
+# train options
+batch_size: 256
+workers: 16
+start_epoch: 0
+epochs: 40
+
+# model options
+resnet: "resnet18"
+normalize: True
+projection_dim: 64
+
+# loss options
+temperature: 0.5
+
+# reload options
+model_path: "logs/0" # set to the directory containing `checkpoint_##.tar` 
+model_num: 40 # set to checkpoint number
+
+# logistic regression options
+logistic_batch_size: 256
+logistic_epochs: 100
 ```
 
 ## Logging and TensorBoard
 The `sacred` package is used to log all experiments into the `logs` directory. To view results in TensorBoard, run:
 ```
 tensorboard --logdir logs
+```
+
+
+#### Dependencies
+```
+torch
+torchvision
+tensorboard
+sacred
+pyyaml
 ```
