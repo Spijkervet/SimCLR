@@ -14,6 +14,31 @@ from experiment import ex
 from modules.transformations import TransformsSimCLR
 
 
+def train(args, train_loader, model, criterion, optimizer, writer):
+    loss_epoch = 0
+    for step, ((x_i, x_j), _) in enumerate(train_loader):
+        optimizer.zero_grad()
+        x_i = x_i.to(args.device)
+        x_j = x_j.to(args.device)
+
+        # positive pair, with encoding
+        h_i, z_i = model(x_i)
+        h_j, z_j = model(x_j)
+
+        loss = criterion(z_i, z_j)
+
+        loss.backward()
+        optimizer.step()
+
+        if step % 1 == 0:
+            print(f"Step [{step}/{len(train_loader)}]\t Loss: {loss.item()}")
+
+        writer.add_scalar("Loss/train_epoch", loss.item(), args.global_step)
+        loss_epoch += loss.item()
+        args.global_step += 1
+    return loss_epoch
+
+
 @ex.automain
 def main(_run, _log):
     args = argparse.Namespace(**_run.config)
@@ -45,38 +70,18 @@ def main(_run, _log):
     writer = SummaryWriter(log_dir=tb_dir)
 
     mask = mask_correlated_samples(args)
-    nt_xent = NT_Xent(args.batch_size, args.temperature, mask, args.device)
+    criterion = NT_Xent(args.batch_size, args.temperature, mask, args.device)
 
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
-        loss_epoch = 0
-        for step, ((x_i, x_j), _) in enumerate(train_loader):
-            optimizer.zero_grad()
-            x_i = x_i.to(args.device)
-            x_j = x_j.to(args.device)
-
-            # positive pair, with encoding
-            h_i, z_i = model(x_i)
-            h_j, z_j = model(x_j)
-
-            loss = nt_xent(z_i, z_j)
-
-            loss.backward()
-            optimizer.step()
-
-            if step % 1 == 0:
-                print(f"Step [{step}/{len(train_loader)}]\t Loss: {loss.item()}")
-
-            writer.add_scalar("Loss/train_epoch", loss.item(), args.global_step)
-            loss_epoch += loss.item()
-            args.global_step += 1
+        loss_epoch = train(args, train_loader, model, criterion, optimizer, writer)
 
         writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
-        print(f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}")
         if epoch % 10 == 0:
             save_model(args, model, optimizer)
 
+        print(f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}")
         args.current_epoch += 1
 
     ## end training
