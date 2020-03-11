@@ -33,3 +33,9 @@ tensorboard
 sacred
 pyyaml
 ```
+
+## Logging and TensorBoard
+The `sacred` package is used to log all experiments into the `logs` directory. To view results in TensorBoard, run:
+```
+tensorboard --logdir logs
+```
