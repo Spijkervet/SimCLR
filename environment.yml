@@ -1,0 +1,9 @@
+name: simclr
+channels:
+  - pytorch
+dependencies:
+  - pytorch
+  - torchvision
+  - tensorboard
+  - pip:
+    - sacred

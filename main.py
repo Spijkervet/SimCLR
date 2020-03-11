@@ -6,12 +6,12 @@ import argparse
 from torch.utils.tensorboard import SummaryWriter
 from model import load_model, save_model
 from modules import NT_Xent
-from utils import mask_correlated_samples, post_hook
+from modules.transformations import TransformsSimCLR
+from utils import mask_correlated_samples, post_config_hook
 
 #### pass configuration
 from experiment import ex
 
-from modules.transformations import TransformsSimCLR
 
 
 def train(args, train_loader, model, criterion, optimizer, writer):
@@ -42,7 +42,7 @@ def train(args, train_loader, model, criterion, optimizer, writer):
 @ex.automain
 def main(_run, _log):
     args = argparse.Namespace(**_run.config)
-    args = post_hook(args, _run)
+    args = post_config_hook(args, _run)
 
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
