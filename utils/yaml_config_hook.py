@@ -25,3 +25,12 @@ def yaml_config_hook(config_file, ex):
     ex.add_config(cfg)
     del f
     del cfg
+
+def post_hook(args, _run):
+    if len(_run.observers) > 1:
+        out_dir = _run.observers[1].dir
+    else:
+        out_dir = _run.observers[0].dir
+
+    args.out_dir = out_dir
+    return args
