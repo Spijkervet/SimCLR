@@ -1,0 +1,7 @@
+batch_size: 256
+workers: 16
+start_epoch: 0
+epochs: 40
+normalize: True
+temperature: 0.5
+n_out: 64
