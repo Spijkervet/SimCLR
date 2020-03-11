@@ -2,9 +2,14 @@ import os
 import torch
 from modules import SimCLR
 
-def load_model(args):
+def load_model(args, reload_model=False):
     model = SimCLR(args)
+
+    if reload_model:
+        model_fp = os.path.join(args.model_path, "checkpoint_{}.tar".format(args.model_num))
+        model.load_state_dict(torch.load(model_fp))
     return model
+
 
 def save_model(args, model, optimizer):
     out = os.path.join(args.out_dir, "checkpoint_{}.tar".format(args.current_epoch))

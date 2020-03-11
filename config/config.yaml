@@ -1,8 +1,21 @@
+# train options
 batch_size: 256
 workers: 16
 start_epoch: 0
 epochs: 40
-normalize: True
-temperature: 0.5
-n_out: 64
+
+# model options
 resnet: "resnet18"
+normalize: True
+n_out: 64
+
+# loss options
+temperature: 0.5
+
+# reload options
+model_path: "logs/182" # set to most directory containing `checkpoint_##.tar`
+model_num: 40 # set to checkpoint number
+
+# logistic regression options
+logistic_batch_size: 256
+logistic_epochs: 100

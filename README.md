@@ -25,7 +25,15 @@ Then, simply run:
 python main.py
 ```
 
-### Dependencies
+### Testing
+To test a trained model, make sure to set the `model_path` variable in the `config/config.yaml` to the log ID of the training (e.g. `logs/0`).
+Set the `model_num` to the epoch number you want to load the checkpoints from (e.g. `40`).
+
+```
+python -m testing.logistic_regression
+```
+
+## Dependencies
 ```
 torch
 torchvision

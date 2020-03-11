@@ -17,7 +17,8 @@ def yaml_config_hook(config_file, ex):
             config_dir, cf = d.popitem()
             cf = os.path.join(os.path.dirname(config_file), config_dir, cf + ".yaml")
             with open(cf) as f:
-                cfg.update(yaml.safe_load(f))
+                l = yaml.safe_load(f)
+                cfg.update(l)
 
     if "defaults" in cfg.keys():
         del cfg["defaults"]
