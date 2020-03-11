@@ -29,7 +29,7 @@ class SimCLR(nn.Module):
         self.projector = nn.Sequential(
             nn.Linear(self.n_features, self.n_features),
             nn.ReLU(),
-            nn.Linear(self.n_features, args.n_out),
+            nn.Linear(self.n_features, args.projection_dim),
         )
 
     def get_resnet(self, name):
