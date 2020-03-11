@@ -1,6 +1,8 @@
 # SimCLR
 PyTorch implementation of SimCLR: A Simple Framework for Contrastive Learning of Visual Representations by T. Chen et al.
 
+[Link to paper](https://arxiv.org/pdf/2002.05709.pdf)
+
 ### Quickstart
 This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`72%` on the STL-10 test set.
 ```
