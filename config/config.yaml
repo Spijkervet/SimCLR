@@ -5,3 +5,4 @@ epochs: 40
 normalize: True
 temperature: 0.5
 n_out: 64
+resnet: "resnet18"

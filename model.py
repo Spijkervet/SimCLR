@@ -3,7 +3,6 @@ import torch
 from modules import SimCLR
 
 def load_model(args):
-
     model = SimCLR(args)
     return model
 

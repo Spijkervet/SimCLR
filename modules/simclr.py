@@ -19,7 +19,8 @@ class SimCLR(nn.Module):
         super(SimCLR, self).__init__()
 
         self.args = args
-        self.encoder = torchvision.models.resnet18()  # resnet50
+
+        self.encoder = self.get_resnet(args.resnet)
 
         self.n_features = self.encoder.fc.in_features  # get dimensions of fc layer
         self.encoder.fc = Identity()  # remove fully-connected layer after pooling layer
@@ -31,9 +32,18 @@ class SimCLR(nn.Module):
             nn.Linear(self.n_features, args.n_out),
         )
 
+    def get_resnet(self, name):
+        resnets = {
+            "resnet18": torchvision.models.resnet18(),
+            "resnet50": torchvision.models.resnet50(),
+        }
+        if name not in resnets.keys():
+            raise KeyError(f"{name} is not a valid ResNet version")
+        return resnets[name]
+
+
     def forward(self, x):
         h = self.encoder(x)
-        h = h.reshape(self.args.batch_size, -1)
         z = self.projector(h)
 
         if self.args.normalize:
