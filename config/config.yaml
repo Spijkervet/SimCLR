@@ -1,5 +1,5 @@
 # train options
-batch_size: 256
+batch_size: 512
 workers: 16
 start_epoch: 0
 epochs: 40
@@ -10,7 +10,7 @@ normalize: True
 projection_dim: 64
 
 # loss options
-temperature: 0.5
+temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch sizes
 
 # reload options
 model_path: "logs/0" # set to the directory containing `checkpoint_##.tar` 
