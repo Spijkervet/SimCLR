@@ -1,11 +1,12 @@
 # train options
-batch_size: 512
+batch_size: 256
 workers: 16
 start_epoch: 0
-epochs: 40
+epochs: 100
+dataset: "CIFAR10" # STL10
 
 # model options
-resnet: "resnet18"
+resnet: "resnet50"
 normalize: True
 projection_dim: 64
 

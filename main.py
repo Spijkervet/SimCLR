@@ -52,9 +52,18 @@ def main(_run, _log):
     optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)  # TODO: LARS
 
     train_sampler = None
-    train_dataset = torchvision.datasets.STL10(
-        root, split="unlabeled", download=True, transform=TransformsSimCLR()
-    )
+
+    if args.dataset == "STL10":
+        train_dataset = torchvision.datasets.STL10(
+            root, split="unlabeled", download=True, transform=TransformsSimCLR()
+        )
+    elif args.dataset == "CIFAR10":
+        train_dataset = torchvision.datasets.CIFAR10(
+            root, split="unlabeled", download=True, transform=TransformsSimCLR()
+        )
+    else:
+        raise NotImplementedError
+    
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
