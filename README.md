@@ -6,6 +6,7 @@ This downloads a pre-trained model and trains the linear classifier, which shoul
 ```
 git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar
+sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
 python -m testing.logistic_regression with model_path=. model_num=40
 ```
 

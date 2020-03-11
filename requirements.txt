@@ -2,3 +2,4 @@ torch
 torchvision
 tensorboard
 sacred
+PyYAML
