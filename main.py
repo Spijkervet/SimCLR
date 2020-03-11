@@ -12,26 +12,24 @@ from model import load_model, save_model
 from experiment import ex
 
 
-class TransformsSinCLR():
+class TransformsSinCLR:
     """
-    A stochastic data augmentation module that transforms any given data example randomly resulting in two correlated views of the same example,
+    A stochastic data augmentation module that transforms any given data example randomly 
+    resulting in two correlated views of the same example,
     denoted x ̃i and x ̃j, which we consider as a positive pair.
     """
 
     def __init__(self):
         s = 1
-        resize_crop = torchvision.transforms.RandomResizedCrop(size=96)  # crop_size
         color_jitter = torchvision.transforms.ColorJitter(
             0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s
         )
-        rnd_color_jitter = torchvision.transforms.RandomApply([color_jitter], p=0.8)
-        rnd_gray = torchvision.transforms.RandomGrayscale(p=0.2)
         self.train_transform = torchvision.transforms.Compose(
             [
-                resize_crop,
-                torchvision.transforms.RandomHorizontalFlip(), # with 0.5 probability
-                rnd_color_jitter,
-                rnd_gray,
+                torchvision.transforms.RandomResizedCrop(size=96),
+                torchvision.transforms.RandomHorizontalFlip(),  # with 0.5 probability
+                torchvision.transforms.RandomApply([color_jitter], p=0.8),
+                torchvision.transforms.RandomGrayscale(p=0.2),
                 torchvision.transforms.ToTensor(),
             ]
         )
@@ -40,50 +38,30 @@ class TransformsSinCLR():
         return self.train_transform(x), self.train_transform(x)
 
 
-def calc_loss(args, z_i, z_j, cossim, mask_diag, mask_triag):
-
+def nt_xent(args, z_i, z_j, cossim, mask, criterion):
     """
     We do not sample negative examples explicitly.
     Instead, given a positive pair, similar to (Chen et al., 2017), we treat the other 2(N − 1) augmented examples within a minibatch as negative examples.
     """
 
-    ## pairwise similarity, manually:
     p1 = torch.cat((z_i, z_j), dim=0)
-    # sim = torch.zeros((all_pairs.size(0), all_pairs.size(0))).to(args.device)
-    # for i_idx, i in enumerate(all_pairs):
-    #     for j_idx, j in enumerate(all_pairs):
-    #         i = i.unsqueeze(0)
-    #         j = j.unsqueeze(1)
-    #         mm = torch.matmul(i, j).squeeze().to(args.device)
-    #         sim[i_idx, j_idx] = (mm / args.temperature).exp()
-    # sim = torch.matmul(p1, p1.T)
+    sim = cossim(p1.unsqueeze(1), p1.unsqueeze(0)) / args.temperature
 
-    sim = cossim(p1.unsqueeze(1), p1.unsqueeze(0))
-    sim /= args.temperature
-    sim = torch.exp(sim)
+    sim_i_j = torch.diag(sim, args.batch_size)
+    sim_j_i = torch.diag(sim, -args.batch_size)
 
-    nominator = torch.cat(
-        (
-            sim[torch.arange(0, args.batch_size), mask_triag],
-            sim[mask_triag, torch.arange(0, args.batch_size)],
-        ),
-        dim=0,
-    )
+    positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(args.batch_size * 2, 1)
+    negative_samples = sim[mask].reshape(args.batch_size * 2, -1)
 
-    masks = sim.clone()
-    masks[mask_diag, mask_diag] = 0.0
-    masks[mask_triag, torch.arange(0, args.batch_size)] = 0.0
-    masks[torch.arange(0, args.batch_size), mask_triag] = 0.0
-    denominator = masks.sum()
+    labels = torch.zeros(args.batch_size * 2).to(args.device).long()
+    logits = torch.cat((positive_samples, negative_samples), dim=1)
+    loss = criterion(logits, labels)
+    loss /= 2 * args.batch_size
+    return loss
 
-    l_ij = -torch.log(nominator / denominator).to(args.device)
-    total_loss = l_ij.mean()
-    total_loss /= 2
-    return total_loss
 
 @ex.automain
 def main(_run, _log):
-    torch.autograd.set_detect_anomaly(True)
     args = argparse.Namespace(**_run.config)
 
     if len(_run.observers) > 1:
@@ -94,7 +72,6 @@ def main(_run, _log):
     args.out_dir = out_dir
 
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
 
     root = "./datasets"
     model = load_model(args)
@@ -115,14 +92,19 @@ def main(_run, _log):
         sampler=train_sampler,
     )
 
-
     tb_dir = os.path.join(args.out_dir, _run.experiment_info["name"])
     os.makedirs(tb_dir)
     writer = SummaryWriter(log_dir=tb_dir)
 
-    cos_2 = torch.nn.CosineSimilarity(dim=2)
-    mask_diag = torch.arange(0, args.batch_size * 2).to(args.device)
-    mask_triag = torch.arange(args.batch_size, args.batch_size * 2).to(args.device)
+    cossim = torch.nn.CosineSimilarity(dim=2)
+    criterion = torch.nn.CrossEntropyLoss(reduction="sum")
+
+    mask = torch.ones((args.batch_size * 2, args.batch_size * 2), dtype=bool)
+    mask = mask.fill_diagonal_(0)
+    for i in range(args.batch_size):
+        mask[i, args.batch_size + i] = 0
+        mask[args.batch_size + i, i] = 0
+
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
@@ -136,20 +118,24 @@ def main(_run, _log):
             h_i, z_i = model(x_i)
             h_j, z_j = model(x_j)
 
-            loss = calc_loss(args, z_i, z_j, cos_2, mask_diag, mask_triag)
+            loss = nt_xent(args, z_i, z_j, cossim, mask, criterion)
+
             loss.backward()
             optimizer.step()
 
-            if step % 50 == 0:
+            if step % 1 == 0:
                 print(f"Step [{step}/{len(train_loader)}]\t Loss: {loss.item()}")
-            
+
             writer.add_scalar("Loss/train_epoch", loss.item(), args.global_step)
             loss_epoch += loss.item()
             args.global_step += 1
-        
+
         writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
         print(f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}")
         if epoch % 10 == 0:
             save_model(args, model, optimizer)
 
-        args.current_epoch += 1 
+        args.current_epoch += 1
+
+    ## end training
+    save_model(args, model, optimizer)
