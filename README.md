@@ -15,7 +15,8 @@ python -m testing.logistic_regression with model_path=. model_num=40
 ### Results
 | Method  | Batch Size | ResNet | Projection output dimensionality | STL-10 |
 | ------------- |------------- | ------------- | ------------- |------------- |
-| SimCLR + Linear eval. | 256 | ResNet18 | 64 | **0.718**  |
+| SimCLR + Linear eval. | 256 | ResNet50 | 64 | **0.795** |
+| SimCLR + Linear eval. | 256 | ResNet18 | 64 | 0.718  |
 | SimCLR + Linear eval. | 512 | ResNet18 | 64 | 0.71 |
 
 
