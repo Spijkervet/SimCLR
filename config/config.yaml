@@ -3,12 +3,12 @@ batch_size: 256
 workers: 16
 start_epoch: 0
 epochs: 100
-dataset: "CIFAR10" # STL10
+dataset: "STL10" # STL10
 
 # model options
-resnet: "resnet50"
+resnet: "resnet18"
 normalize: True
-projection_dim: 128 # "[...] to project the representation to a 128-dimensional latent space"
+projection_dim: 64 # "[...] to project the representation to a 128-dimensional latent space"
 
 # loss options
 temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch sizes
@@ -23,5 +23,5 @@ fp16_opt_level: "O2"
 
 
 # logistic regression options
-logistic_batch_size: 512
+logistic_batch_size: 256
 logistic_epochs: 100
