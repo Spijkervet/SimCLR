@@ -7,9 +7,9 @@ PyTorch implementation of SimCLR: A Simple Framework for Contrastive Learning of
 This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`72%` on the STL-10 test set.
 ```
 git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
-wget https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar
+wget https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar
 sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
-python -m testing.logistic_regression with model_path=. model_num=40
+python -m testing.logistic_regression with model_path=. model_num=100
 ```
 
 ### Pre-trained models
