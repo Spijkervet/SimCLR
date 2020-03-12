@@ -6,3 +6,4 @@ def mask_correlated_samples(args):
     for i in range(args.batch_size):
         mask[i, args.batch_size + i] = 0
         mask[args.batch_size + i, i] = 0
+    return mask
