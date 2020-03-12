@@ -8,7 +8,7 @@ dataset: "CIFAR10" # STL10
 # model options
 resnet: "resnet50"
 normalize: True
-projection_dim: 64
+projection_dim: 128 # "[...] to project the representation to a 128-dimensional latent space"
 
 # loss options
 temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch sizes
@@ -16,6 +16,11 @@ temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch 
 # reload options
 model_path: "logs/0" # set to the directory containing `checkpoint_##.tar` 
 model_num: 40 # set to checkpoint number
+
+# mixed-precision training
+fp16: False 
+fp16_opt_level: "O2"
+
 
 # logistic regression options
 logistic_batch_size: 512

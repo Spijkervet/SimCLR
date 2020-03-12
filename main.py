@@ -4,6 +4,8 @@ import torchvision
 import argparse
 
 from torch.utils.tensorboard import SummaryWriter
+from apex import amp
+
 from model import load_model, save_model
 from modules import NT_Xent
 from modules.transformations import TransformsSimCLR
@@ -27,7 +29,12 @@ def train(args, train_loader, model, criterion, optimizer, writer):
 
         loss = criterion(z_i, z_j)
 
-        loss.backward()
+        if args.fp16:
+            with amp.scale_loss(loss, optimizer) as scaled_loss:
+                    scaled_loss.backward()
+        else:
+            loss.backward()
+
         optimizer.step()
 
         if step % 1 == 0:
@@ -47,9 +54,7 @@ def main(_run, _log):
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     root = "./datasets"
-    model = load_model(args)
-    model = model.to(args.device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)  # TODO: LARS
+    model, optimizer = load_model(args)
 
     train_sampler = None
 
