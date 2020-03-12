@@ -1,5 +1,6 @@
 import torch
 import torchvision
+import torchvision.transforms as transforms
 import argparse
 
 from experiment import ex
@@ -34,6 +35,8 @@ def train(args, loader, simclr_model, model, criterion, optimizer):
         optimizer.step()
 
         loss_epoch += loss.item()
+        if step % 1000 == 0:
+            print(f"Step [{step}/{len(loader)}]\t Loss: {loss.item()}\t Accuracy: {acc}")
 
     return loss_epoch, accuracy_epoch
 
@@ -61,6 +64,7 @@ def test(args, loader, simclr_model, model, criterion, optimizer):
         accuracy_epoch += acc
 
         loss_epoch += loss.item()
+        
 
     return loss_epoch, accuracy_epoch
 
@@ -85,17 +89,31 @@ def main(_run, _log):
     optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
     criterion = torch.nn.CrossEntropyLoss()
 
-    train_dataset = torchvision.datasets.STL10(
-        root, split="train", download=True, transform=torchvision.transforms.ToTensor()
-    )
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    test_dataset = torchvision.datasets.STL10(
-        root, split="test", download=True, transform=torchvision.transforms.ToTensor()
-    )
+    if args.dataset == "STL10":
+        train_dataset = torchvision.datasets.STL10(
+            root, split="train", download=True, transform=torchvision.transforms.ToTensor()
+        )
+        test_dataset = torchvision.datasets.STL10(
+            root, split="test", download=True, transform=torchvision.transforms.ToTensor()
+        )
+    elif args.dataset == "CIFAR10":
+        train_dataset = torchvision.datasets.CIFAR10(
+            root, train=True, download=True, transform=transform
+        )
+        test_dataset = torchvision.datasets.CIFAR10(
+            root, train=False, download=True, transform=transform
+        )
+    else:
+        raise NotImplementedError
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=args.logistic_batch_size,
+        shuffle=True,
         drop_last=True,
         num_workers=args.workers,
     )
@@ -103,6 +121,7 @@ def main(_run, _log):
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
         batch_size=args.logistic_batch_size,
+        shuffle=False,
         drop_last=True,
         num_workers=args.workers,
     )

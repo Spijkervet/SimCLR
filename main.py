@@ -59,7 +59,7 @@ def main(_run, _log):
         )
     elif args.dataset == "CIFAR10":
         train_dataset = torchvision.datasets.CIFAR10(
-            root, split="unlabeled", download=True, transform=TransformsSimCLR()
+            root, download=True, transform=TransformsSimCLR()
         )
     else:
         raise NotImplementedError

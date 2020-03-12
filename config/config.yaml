@@ -18,5 +18,5 @@ model_path: "logs/0" # set to the directory containing `checkpoint_##.tar`
 model_num: 40 # set to checkpoint number
 
 # logistic regression options
-logistic_batch_size: 256
+logistic_batch_size: 512
 logistic_epochs: 100
