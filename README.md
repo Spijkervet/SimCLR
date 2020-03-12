@@ -57,6 +57,11 @@ Set the `model_num` to the epoch number you want to load the checkpoints from (e
 python -m testing.logistic_regression
 ```
 
+or in place:
+```
+python -m testing.logistic_regression with model_path=./logs/0 model_num=40
+```
+
 
 ## Configuration
 The configuration of training can be found in: `config/config.yaml`. I personally prefer to use files instead of long strings of arguments when configuring a run. An example `config.yaml` file:
