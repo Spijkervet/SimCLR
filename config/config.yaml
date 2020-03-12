@@ -1,4 +1,5 @@
 # train options
+seed: 42 # sacred handles automatic seeding when passed in the config
 batch_size: 256
 workers: 16
 start_epoch: 0
@@ -6,11 +7,12 @@ epochs: 100
 dataset: "STL10" # STL10
 
 # model options
-resnet: "resnet18"
+resnet: "resnet50"
 normalize: True
 projection_dim: 64 # "[...] to project the representation to a 128-dimensional latent space"
 
 # loss options
+optimizer: "Adam" # or LARS (experimental)
 temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch sizes
 
 # reload options
