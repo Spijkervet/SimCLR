@@ -16,6 +16,7 @@ python -m testing.logistic_regression with model_path=. model_num=40
 | ResNet (batch_size, epochs) | STL-10 Top-1 |
 | ------------- | ------------- |
 | [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | 0.719 |
+
 `python -m testing.logistic_regression with model_path=. model_num=40`
 
 ### Results
