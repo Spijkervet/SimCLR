@@ -76,7 +76,7 @@ def main(_run, _log):
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     root = "./datasets"
-    simclr_model = load_model(args, reload_model=True)
+    simclr_model, _ = load_model(args, reload_model=True)
     simclr_model = simclr_model.to(args.device)
     simclr_model.eval()
 
