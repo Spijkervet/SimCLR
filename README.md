@@ -16,9 +16,9 @@ python -m testing.logistic_regression with model_path=. model_num=100
 ### Pre-trained models
 | ResNet (batch_size, epochs) | STL-10 Top-1 |
 | ------------- | ------------- |
+| [ResNet50 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar) | **0.791** |
 | [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | 0.765 |
 | [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | 0.719 |
-
 `python -m testing.logistic_regression with model_path=. model_num=100`
 
 ### Results
@@ -26,7 +26,7 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 
 | Method  | Batch Size | ResNet | Projection output dimensionality | Epochs | STL-10 | CIFAR-10
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
-| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 40 | **0.795** | **0.553** | 
+| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | **0.791** | **0.553** | 
 | SimCLR + Linear eval. | 256 | ResNet18 | 64 | 100 |  0.765  | - |
 | SimCLR + Linear eval. | 256 | ResNet18 | 64 | 40 | 0.719  | - |
 | SimCLR + Linear eval. | 512 | ResNet18 | 64 | 40 | 0.71 | - |
