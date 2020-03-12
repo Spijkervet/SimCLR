@@ -9,6 +9,7 @@ This downloads a pre-trained model and trains the linear classifier, which shoul
 git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar
 sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
+conda activate simclr
 python -m testing.logistic_regression with model_path=. model_num=100
 ```
 
@@ -18,7 +19,7 @@ python -m testing.logistic_regression with model_path=. model_num=100
 | [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | 0.765 |
 | [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | 0.719 |
 
-`python -m testing.logistic_regression with model_path=. model_num=40`
+`python -m testing.logistic_regression with model_path=. model_num=100`
 
 ### Results
 These are the top-1 accuracy of linear classifiers trained on the (frozen) representations learned by SimCLR:
