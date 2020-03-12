@@ -13,11 +13,14 @@ python -m testing.logistic_regression with model_path=. model_num=40
 ```
 
 ### Results
+These are the top-1 accuracy of linear classifiers trained on the (frozen) representations learned by SimCLR:
+
 | Method  | Batch Size | ResNet | Projection output dimensionality | STL-10 |
 | ------------- |------------- | ------------- | ------------- |------------- |
-| SimCLR + Linear eval. | 256 | ResNet18 | 64 | **0.718**  |
+| SimCLR + Linear eval. | 256 | ResNet50 | 64 | **0.795** |
+| SimCLR + Linear eval. | 256 | ResNet18 | 64 | 0.718  |
 | SimCLR + Linear eval. | 512 | ResNet18 | 64 | 0.71 |
-
+| Logistic Regression | - | - | - | 0.358
 
 ## What is SimCLR?
 SimCLR is a "simple framework for contrastive learning of visual representations". The contrastive prediction task is defined on pairs of augmented examples, resulting in 2N examples per minibatch. Two augmented versions of an image are considered as a correlated, "positive" pair (x_i and x_j). The remaining 2(N - 1) augmented examples are considered negative examples. The contrastive prediction task aims to identify x_j in the set of negative examples for a given x_i.
