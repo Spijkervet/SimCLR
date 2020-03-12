@@ -22,6 +22,9 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 | SimCLR + Linear eval. | 512 | ResNet18 | 64 | 0.71 | - |
 | Logistic Regression | - | - | - | 0.358 |  0.389 |
 
+#### Mixed-precision training
+I am still evaluating the results, but using mixed-precision training allows you to train SimCLR on CIFAR-10 with ResNet50 and a batch size of 512 on a single 2080Ti (allocating ±11.2G). Use `fp16: True` in the `config/config.yaml` file to use mixed-precision training.
+
 ## What is SimCLR?
 SimCLR is a "simple framework for contrastive learning of visual representations". The contrastive prediction task is defined on pairs of augmented examples, resulting in 2N examples per minibatch. Two augmented versions of an image are considered as a correlated, "positive" pair (x_i and x_j). The remaining 2(N - 1) augmented examples are considered negative examples. The contrastive prediction task aims to identify x_j in the set of negative examples for a given x_i.
 
