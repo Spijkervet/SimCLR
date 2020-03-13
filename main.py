@@ -15,10 +15,10 @@ from utils import mask_correlated_samples, post_config_hook
 from experiment import ex
 
 
-
 def train(args, train_loader, model, criterion, optimizer, writer):
     loss_epoch = 0
     for step, ((x_i, x_j), _) in enumerate(train_loader):
+
         optimizer.zero_grad()
         x_i = x_i.to(args.device)
         x_j = x_j.to(args.device)
@@ -31,7 +31,7 @@ def train(args, train_loader, model, criterion, optimizer, writer):
 
         if args.fp16:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
-                    scaled_loss.backward()
+                scaled_loss.backward()
         else:
             loss.backward()
 
@@ -54,7 +54,6 @@ def main(_run, _log):
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     root = "./datasets"
-    model, optimizer = load_model(args)
 
     train_sampler = None
 
@@ -68,7 +67,6 @@ def main(_run, _log):
         )
     else:
         raise NotImplementedError
-    
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
@@ -78,6 +76,8 @@ def main(_run, _log):
         num_workers=args.workers,
         sampler=train_sampler,
     )
+
+    model, optimizer, scheduler = load_model(args, train_loader)
 
     tb_dir = os.path.join(args.out_dir, _run.experiment_info["name"])
     os.makedirs(tb_dir)
@@ -89,13 +89,20 @@ def main(_run, _log):
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
+        lr = optimizer.param_groups[0]['lr']
         loss_epoch = train(args, train_loader, model, criterion, optimizer, writer)
 
-        writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
+        if scheduler:
+            scheduler.step()
+
         if epoch % 10 == 0:
             save_model(args, model, optimizer)
 
-        print(f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}")
+        writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
+        writer.add_scalar("Misc/learning_rate", lr, epoch)
+        print(
+            f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}\t lr: {round(lr, 3)}"
+        )
         args.current_epoch += 1
 
     ## end training

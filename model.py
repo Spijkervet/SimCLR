@@ -1,17 +1,40 @@
 import os
 import torch
-from modules import SimCLR
+from modules import SimCLR, LARS
 
-def load_model(args, reload_model=False):
+
+def load_model(args, loader, reload_model=False):
     model = SimCLR(args)
 
     if reload_model:
-        model_fp = os.path.join(args.model_path, "checkpoint_{}.tar".format(args.model_num))
+        model_fp = os.path.join(
+            args.model_path, "checkpoint_{}.tar".format(args.epoch_num)
+        )
         model.load_state_dict(torch.load(model_fp))
-    
+
     model = model.to(args.device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)  # TODO: LARS
+    scheduler = None
+    if args.optimizer == "Adam":
+        optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)  # TODO: LARS
+    elif args.optimizer == "LARS":
+        # optimized using LARS with linear learning rate scaling
+        # (i.e. LearningRate = 0.3 × BatchSize/256) and weight decay of 10−6.
+        learning_rate = 0.3 * args.batch_size / 256
+        optimizer = LARS(
+            model.parameters(),
+            lr=learning_rate,
+            weight_decay=args.weight_decay,
+            exclude_from_weight_decay=["batch_normalization", "bias"],
+        )
+
+        # "decay the learning rate with the cosine decay schedule without restarts"
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, len(loader), eta_min=0, last_epoch=-1
+        )
+    else:
+        raise NotImplementedError
+
     if args.fp16:
         try:
             from apex import amp
@@ -25,7 +48,7 @@ def load_model(args, reload_model=False):
             model, optimizer, opt_level=args.fp16_opt_level
         )
 
-    return model, optimizer
+    return model, optimizer, scheduler
 
 
 def save_model(args, model, optimizer):

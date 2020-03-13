@@ -10,7 +10,7 @@ git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar
 sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
 conda activate simclr
-python -m testing.logistic_regression with model_path=. model_num=100
+python -m testing.logistic_regression with model_path=. epoch_num=100
 ```
 
 ### Pre-trained models
@@ -19,7 +19,7 @@ python -m testing.logistic_regression with model_path=. model_num=100
 | [ResNet50 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar) | **0.791** |
 | [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | 0.765 |
 | [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | 0.719 |
-`python -m testing.logistic_regression with model_path=. model_num=100`
+`python -m testing.logistic_regression with model_path=. epoch_num=100`
 
 ### Results
 These are the top-1 accuracy of linear classifiers trained on the (frozen) representations learned by SimCLR:
@@ -34,6 +34,9 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 
 #### Mixed-precision training
 I am still evaluating the results, but using mixed-precision training allows you to train SimCLR on CIFAR-10 with ResNet50 and a batch size of 512 on a single 2080Ti (allocating ±11.2G). Use `fp16: True` in the `config/config.yaml` file to use mixed-precision training.
+
+#### LARS optimizer
+The LARS optimizer is implemented in `modules/lars.py`. It can be activated by adjusting the `config/config.yaml` optimizer setting to: `optimizer: "LARS"`. It is still experimental and has not been thoroughly tested.
 
 ## What is SimCLR?
 SimCLR is a "simple framework for contrastive learning of visual representations". The contrastive prediction task is defined on pairs of augmented examples, resulting in 2N examples per minibatch. Two augmented versions of an image are considered as a correlated, "positive" pair (x_i and x_j). The remaining 2(N - 1) augmented examples are considered negative examples. The contrastive prediction task aims to identify x_j in the set of negative examples for a given x_i.
@@ -61,7 +64,7 @@ python main.py
 
 ### Testing
 To test a trained model, make sure to set the `model_path` variable in the `config/config.yaml` to the log ID of the training (e.g. `logs/0`).
-Set the `model_num` to the epoch number you want to load the checkpoints from (e.g. `40`).
+Set the `epoch_num` to the epoch number you want to load the checkpoints from (e.g. `40`).
 
 ```
 python -m testing.logistic_regression
@@ -69,7 +72,7 @@ python -m testing.logistic_regression
 
 or in place:
 ```
-python -m testing.logistic_regression with model_path=./logs/0 model_num=40
+python -m testing.logistic_regression with model_path=./logs/0 epoch_num=40
 ```
 
 
@@ -92,7 +95,7 @@ temperature: 0.5
 
 # reload options
 model_path: "logs/0" # set to the directory containing `checkpoint_##.tar` 
-model_num: 40 # set to checkpoint number
+epoch_num: 40 # set to checkpoint number
 
 # logistic regression options
 logistic_batch_size: 256

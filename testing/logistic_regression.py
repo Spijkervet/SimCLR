@@ -76,19 +76,6 @@ def main(_run, _log):
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     root = "./datasets"
-    simclr_model, _ = load_model(args, reload_model=True)
-    simclr_model = simclr_model.to(args.device)
-    simclr_model.eval()
-
-
-    ## Logistic Regression
-    n_classes = 10 # stl-10
-    model = LogisticRegression(simclr_model.n_features, n_classes)
-    model = model.to(args.device)
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
-    criterion = torch.nn.CrossEntropyLoss()
-
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -125,6 +112,21 @@ def main(_run, _log):
         drop_last=True,
         num_workers=args.workers,
     )
+
+
+    simclr_model, _, _ = load_model(args, train_loader, reload_model=True)
+    simclr_model = simclr_model.to(args.device)
+    simclr_model.eval()
+
+
+    ## Logistic Regression
+    n_classes = 10 # stl-10
+    model = LogisticRegression(simclr_model.n_features, n_classes)
+    model = model.to(args.device)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
+    criterion = torch.nn.CrossEntropyLoss()
+
 
     for epoch in range(args.logistic_epochs):
         loss_epoch, accuracy_epoch = train(args, train_loader, simclr_model, model, criterion, optimizer)
