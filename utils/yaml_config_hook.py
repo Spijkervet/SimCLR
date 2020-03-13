@@ -2,13 +2,11 @@ import os
 import yaml
 
 
-def yaml_config_hook(config_file, ex):
+def yaml_config_hook(config_file):
     """
     Custom YAML config loader, which can include other yaml files (I like using config files
     insteaad of using argparser)
     """
-
-    ex.add_config(config_file)
 
     # load yaml files in the nested 'defaults' section, which include defaults for experiments
     with open(config_file) as f:
@@ -23,9 +21,7 @@ def yaml_config_hook(config_file, ex):
     if "defaults" in cfg.keys():
         del cfg["defaults"]
 
-    ex.add_config(cfg)
-    del f
-    del cfg
+    return cfg
 
 def post_config_hook(args, _run):
     if len(_run.observers) > 1:
