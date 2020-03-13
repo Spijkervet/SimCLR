@@ -7,7 +7,7 @@ epochs: 100
 dataset: "STL10" # STL10
 
 # model options
-resnet: "resnet18"
+resnet: "resnet50"
 normalize: True
 projection_dim: 64 # "[...] to project the representation to a 128-dimensional latent space"
 
