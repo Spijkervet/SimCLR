@@ -129,6 +129,11 @@ The `sacred` package is used to log all experiments into the `logs` directory. T
 tensorboard --logdir logs
 ```
 
+## Optimizers and learning rate schedule
+This implementation features the Adam optimizer and the LARS optimizer, with the option to decay the learning rate using a cosine decay schedule. The optimizer and weight decay can be configured in the `config/config.yaml` file.
+<p align="center">
+  <img src="https://github.com/Spijkervet/SimCLR/blob/master/media/lr_cosine_decay_schedule.png?raw=true" width="400"/>
+</p>
 
 #### Dependencies
 ```
