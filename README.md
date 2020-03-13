@@ -36,6 +36,11 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 #### Mixed-precision training
 I am still evaluating the results, but using mixed-precision training allows you to train SimCLR on CIFAR-10 with ResNet50 and a batch size of 512 on a single 2080Ti (allocating ±11.2G). Use `fp16: True` in the `config/config.yaml` file to use mixed-precision training.
 
+##### MP results
+ResNet50, 512 batch_size, O1: `0.7862`
+
+ResNet50, 512 batch_size, O2: `0.7797`
+
 #### LARS optimizer
 The LARS optimizer is implemented in `modules/lars.py`. It can be activated by adjusting the `config/config.yaml` optimizer setting to: `optimizer: "LARS"`. It is still experimental and has not been thoroughly tested.
 
