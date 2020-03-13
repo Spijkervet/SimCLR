@@ -4,7 +4,7 @@ With support for the LARS (Layer-wise Adaptive Rate Scaling) optimizer.
 
 [Link to paper](https://arxiv.org/pdf/2002.05709.pdf)
 
-Open SimCLR in Google Colab Notebook:
+Open SimCLR in Google Colab Notebook (with TPU support)
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ObAYvVKQjMG5nd2wIno7j2y_X91E9IrX)
 
