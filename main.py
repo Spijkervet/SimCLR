@@ -37,7 +37,7 @@ def train(args, train_loader, model, criterion, optimizer, writer):
 
         optimizer.step()
 
-        if step % 1 == 0:
+        if step % 50 == 0:
             print(f"Step [{step}/{len(train_loader)}]\t Loss: {loss.item()}")
 
         writer.add_scalar("Loss/train_epoch", loss.item(), args.global_step)
@@ -101,7 +101,7 @@ def main(_run, _log):
         writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
         writer.add_scalar("Misc/learning_rate", lr, epoch)
         print(
-            f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}\t lr: {round(lr, 3)}"
+            f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}\t lr: {round(lr, 5)}"
         )
         args.current_epoch += 1
 
