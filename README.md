@@ -14,6 +14,13 @@ conda activate simclr
 python -m testing.logistic_regression with model_path=. epoch_num=100
 ```
 
+#### CPU
+```
+wget https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar -O checkpoint_100.tar
+python -m testing.logistic_regression with model_path=. epoch_num=100 resnet=resnet18 logistic_batch_size=32
+```
+
+
 ### Pre-trained models
 | ResNet (batch_size, epochs) | STL-10 Top-1 |
 | ------------- | ------------- |
