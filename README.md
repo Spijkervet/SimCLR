@@ -28,26 +28,28 @@ python -m testing.logistic_regression with model_path=. epoch_num=100 resnet=res
 
 
 ### Pre-trained models
-| ResNet (batch_size, epochs) | STL-10 Top-1 |
-| ------------- | ------------- |
-| [ResNet50 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar) | **0.791** |
-| [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | 0.765 |
-| [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | 0.719 |
+| ResNet (batch_size, epochs) | Optimizer | STL-10 Top-1 |
+| ------------- | ------------- | ------------- |
+| [ResNet50 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar) | Adam | **0.791** |
+| [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | Adam | 0.765 |
+| [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | Adam | 0.719 |
+
 `python -m testing.logistic_regression with model_path=. epoch_num=100`
 
 ### Results
 These are the top-1 accuracy of linear classifiers trained on the (frozen) representations learned by SimCLR:
 
-| Method  | Batch Size | ResNet | Projection output dimensionality | Epochs | STL-10 | CIFAR-10
-| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
-| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | **0.791** | **0.553** | 
-| SimCLR + Linear eval. | 256 | ResNet18 | 64 | 100 |  0.765  | - |
-| SimCLR + Linear eval. | 256 | ResNet18 | 64 | 40 | 0.719  | - |
-| SimCLR + Linear eval. | 512 | ResNet18 | 64 | 40 | 0.71 | - |
-| Logistic Regression | - | - | - | 40 | 0.358 | 0.389 |
+| Method  | Batch Size | ResNet | Projection output dimensionality | Epochs | Optimizer | STL-10 | CIFAR-10
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | Adam | **0.791** | **0.553** | 
+| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | LARS | 0.783 | - | 
+| SimCLR + Linear eval. | 256 | ResNet18 | 64 | 100 |  Adam | 0.765  | - |
+| SimCLR + Linear eval. | 256 | ResNet18 | 64 | 40 | Adam | 0.719  | - |
+| SimCLR + Linear eval. | 512 | ResNet18 | 64 | 40 | Adam | 0.71 | - |
+| Logistic Regression | - | - | - | 40 | Adam | 0.358 | 0.389 |
 
 #### Mixed-precision training
-I am still evaluating the results, but using mixed-precision training allows you to train SimCLR on CIFAR-10 with ResNet50 and a batch size of 512 on a single 2080Ti (allocating ±11.2G). Use `fp16: True` in the `config/config.yaml` file to use mixed-precision training.
+I am still evaluating the results, but using mixed-precision training allows you to train SimCLR on CIFAR-10 with ResNet50 and a batch size of 512 on a single 2080Ti (allocating ±11.2G). Use `fp16: True` in the `config/config.yaml` file to use mixed-precision training. This will yield slightly worse results.
 
 ##### MP results
 ResNet50, 512 batch_size, O1: `0.7862`
