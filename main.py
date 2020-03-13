@@ -4,7 +4,15 @@ import torchvision
 import argparse
 
 from torch.utils.tensorboard import SummaryWriter
-from apex import amp
+
+apex = False
+try:
+    from apex import amp
+    apex = True
+except ImportError:
+    print(
+        "Install the apex package from https://www.github.com/nvidia/apex to use fp16 for training"
+    )
 
 from model import load_model, save_model
 from modules import NT_Xent
@@ -29,7 +37,7 @@ def train(args, train_loader, model, criterion, optimizer, writer):
 
         loss = criterion(z_i, z_j)
 
-        if args.fp16:
+        if apex and args.fp16:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
