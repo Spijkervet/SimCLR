@@ -35,7 +35,7 @@ def train(args, loader, simclr_model, model, criterion, optimizer):
         optimizer.step()
 
         loss_epoch += loss.item()
-        if step % 1000 == 0:
+        if step % 1 == 0:
             print(f"Step [{step}/{len(loader)}]\t Loss: {loss.item()}\t Accuracy: {acc}")
 
     return loss_epoch, accuracy_epoch
@@ -64,7 +64,7 @@ def test(args, loader, simclr_model, model, criterion, optimizer):
         accuracy_epoch += acc
 
         loss_epoch += loss.item()
-        
+
 
     return loss_epoch, accuracy_epoch
 
