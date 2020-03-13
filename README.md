@@ -4,6 +4,12 @@ With support for the LARS (Layer-wise Adaptive Rate Scaling) optimizer.
 
 [Link to paper](https://arxiv.org/pdf/2002.05709.pdf)
 
+Open SimCLR in Google Colab Notebook:
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ObAYvVKQjMG5nd2wIno7j2y_X91E9IrX)
+
+
+
 ### Quickstart
 This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`79%` on the STL-10 test set.
 ```
