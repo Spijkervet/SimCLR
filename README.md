@@ -8,7 +8,13 @@ Open SimCLR in Google Colab Notebook (with TPU support)
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ObAYvVKQjMG5nd2wIno7j2y_X91E9IrX)
 
+Open SimCLR results comparison on tensorboard.dev:
 
+<p align="left">
+  <a href="https://tensorboard.dev/experiment/A3laNdafRBes0oR45Y6LiA/#scalars" target="_blank">
+    <img src="https://github.com/Spijkervet/SimCLR/blob/master/media/tensorboard.png?raw=true" height="40"/>
+  </a>
+</p>
 
 ### Quickstart
 This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`79%` on the STL-10 test set.
