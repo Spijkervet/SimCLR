@@ -30,7 +30,7 @@ def load_model(args, loader, reload_model=False):
 
         # "decay the learning rate with the cosine decay schedule without restarts"
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, len(loader), eta_min=0, last_epoch=-1
+            optimizer, args.epochs, eta_min=0, last_epoch=-1
         )
     else:
         raise NotImplementedError
