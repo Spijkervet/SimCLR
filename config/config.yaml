@@ -1,13 +1,13 @@
 # train options
 seed: 42 # sacred handles automatic seeding when passed in the config
-batch_size: 256 
+batch_size: 128
 workers: 16
 start_epoch: 0
 epochs: 100
 dataset: "STL10" # STL10
 
 # model options
-resnet: "resnet18"
+resnet: "resnet50"
 normalize: True
 projection_dim: 64 # "[...] to project the representation to a 128-dimensional latent space"
 
