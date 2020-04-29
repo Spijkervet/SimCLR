@@ -47,7 +47,7 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 
 | Method  | Batch Size | ResNet | Projection output dimensionality | Epochs | Optimizer | STL-10 | CIFAR-10
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
-| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | Adam | **0.791** | **0.553** | 
+| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | Adam | **0.791** | **0.833** | 
 | SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | LARS | 0.783 | - | 
 | SimCLR + Linear eval. | 256 | ResNet18 | 64 | 100 |  Adam | 0.765  | - |
 | SimCLR + Linear eval. | 256 | ResNet18 | 64 | 40 | Adam | 0.719  | - |
