@@ -17,13 +17,13 @@ Open SimCLR results comparison on tensorboard.dev:
 </p>
 
 ### Quickstart
-This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`79%` on the STL-10 test set.
+This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`82.9%` on the STL-10 test set.
 ```
 git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar
 sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
 conda activate simclr
-python -m testing.logistic_regression with model_path=. epoch_num=100
+python -m testing.logistic_regression with dataset=STL10 model_path=. epoch_num=100
 ```
 
 #### CPU
@@ -36,7 +36,7 @@ python -m testing.logistic_regression with model_path=. epoch_num=100 resnet=res
 ### Pre-trained models
 | ResNet (batch_size, epochs) | Optimizer | STL-10 Top-1 |
 | ------------- | ------------- | ------------- |
-| [ResNet50 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar) | Adam | **0.791** |
+| [ResNet50 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar) | Adam | **0.829** |
 | [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | Adam | 0.765 |
 | [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | Adam | 0.719 |
 
@@ -47,7 +47,7 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 
 | Method  | Batch Size | ResNet | Projection output dimensionality | Epochs | Optimizer | STL-10 | CIFAR-10
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
-| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | Adam | **0.791** | **0.833** | 
+| SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | Adam | **0.829** | **0.833** | 
 | SimCLR + Linear eval. | 256 | ResNet50 | 64 | 100 | LARS | 0.783 | - | 
 | SimCLR + Linear eval. | 256 | ResNet18 | 64 | 100 |  Adam | 0.765  | - |
 | SimCLR + Linear eval. | 256 | ResNet18 | 64 | 40 | Adam | 0.719  | - |
