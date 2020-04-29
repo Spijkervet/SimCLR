@@ -4,7 +4,8 @@ batch_size: 128
 workers: 16
 start_epoch: 0
 epochs: 100
-dataset: "STL10" # STL10
+dataset: "CIFAR10" # STL10
+pretrain: False 
 
 # model options
 resnet: "resnet50"
@@ -27,4 +28,4 @@ fp16_opt_level: "O2"
 
 # logistic regression options
 logistic_batch_size: 256
-logistic_epochs: 100
+logistic_epochs: 500

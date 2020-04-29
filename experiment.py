@@ -2,12 +2,12 @@
 Sacred experiment file
 """
 
+from pathlib import Path
+
 # Sacred
 from sacred import Experiment
 from sacred.stflow import LogFileWriter
 from sacred.observers import FileStorageObserver, MongoObserver
-
-# from utils import CustomFileStorageObserver
 
 # custom config hook
 from utils.yaml_config_hook import yaml_config_hook
@@ -36,6 +36,10 @@ def my_config():
 
     cfg = yaml_config_hook(config_file)
     ex.add_config(cfg)
+
+    directory = "pretrain" if cfg["pretrain"] else "eval"
+    ex.observers.append(FileStorageObserver(Path("./logs", directory)))
+
     del cfg
 
     # override any settings here

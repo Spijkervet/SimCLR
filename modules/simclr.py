@@ -27,9 +27,9 @@ class SimCLR(nn.Module):
 
         # We use a MLP with one hidden layer to obtain z_i = g(h_i) = W(2)σ(W(1)h_i) where σ is a ReLU non-linearity.
         self.projector = nn.Sequential(
-            nn.Linear(self.n_features, self.n_features, bias=False),
+            nn.Linear(self.n_features, self.n_features, bias=True),
             nn.ReLU(),
-            nn.Linear(self.n_features, args.projection_dim, bias=False),
+            nn.Linear(self.n_features, args.projection_dim, bias=True),
         )
         
 
