@@ -1,17 +1,25 @@
 import torch
 import torch.nn as nn
 
-class NT_Xent(nn.Module):
 
-    def __init__(self, batch_size, temperature, mask, device):
+class NT_Xent(nn.Module):
+    def __init__(self, batch_size, temperature, device):
         super(NT_Xent, self).__init__()
         self.batch_size = batch_size
         self.temperature = temperature
-        self.mask = mask
+        self.mask = self.mask_correlated_samples(batch_size)
         self.device = device
 
         self.criterion = nn.CrossEntropyLoss(reduction="sum")
         self.similarity_f = nn.CosineSimilarity(dim=2)
+
+    def mask_correlated_samples(self, batch_size):
+        mask = torch.ones((batch_size * 2, batch_size * 2), dtype=bool)
+        mask = mask.fill_diagonal_(0)
+        for i in range(batch_size):
+            mask[i, batch_size + i] = 0
+            mask[batch_size + i, i] = 0
+        return mask
 
     def forward(self, z_i, z_j):
         """
@@ -25,7 +33,9 @@ class NT_Xent(nn.Module):
         sim_i_j = torch.diag(sim, self.batch_size)
         sim_j_i = torch.diag(sim, -self.batch_size)
 
-        positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(self.batch_size * 2, 1)
+        positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(
+            self.batch_size * 2, 1
+        )
         negative_samples = sim[self.mask].reshape(self.batch_size * 2, -1)
 
         labels = torch.zeros(self.batch_size * 2).to(self.device).long()

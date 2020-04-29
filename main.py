@@ -17,7 +17,7 @@ except ImportError:
 from model import load_model, save_model
 from modules import NT_Xent
 from modules.transformations import TransformsSimCLR
-from utils import mask_correlated_samples, post_config_hook
+from utils import post_config_hook
 
 #### pass configuration
 from experiment import ex
@@ -91,8 +91,7 @@ def main(_run, _log):
     os.makedirs(tb_dir)
     writer = SummaryWriter(log_dir=tb_dir)
 
-    mask = mask_correlated_samples(args)
-    criterion = NT_Xent(args.batch_size, args.temperature, mask, args.device)
+    criterion = NT_Xent(args.batch_size, args.temperature, args.device)
 
     args.global_step = 0
     args.current_epoch = 0
