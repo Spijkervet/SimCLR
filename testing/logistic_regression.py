@@ -42,7 +42,7 @@ def get_features(context_model, train_loader, test_loader, device):
     return train_X, train_y, test_X, test_y
 
 
-def create_data_loaders_from_arrays(X_train, y_train, X_test, y_test, batch_size)
+def create_data_loaders_from_arrays(X_train, y_train, X_test, y_test, batch_size):
     train = torch.utils.data.TensorDataset(
         torch.from_numpy(X_train), torch.from_numpy(y_train)
     )
