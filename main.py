@@ -67,11 +67,11 @@ def main(_run, _log):
 
     if args.dataset == "STL10":
         train_dataset = torchvision.datasets.STL10(
-            root, split="unlabeled", download=True, transform=TransformsSimCLR()
+            root, split="unlabeled", download=True, transform=TransformsSimCLR(size=96)
         )
     elif args.dataset == "CIFAR10":
         train_dataset = torchvision.datasets.CIFAR10(
-            root, download=True, transform=TransformsSimCLR()
+            root, download=True, transform=TransformsSimCLR(size=32)
         )
     else:
         raise NotImplementedError
