@@ -1,6 +1,8 @@
 import torch.nn as nn
 import torchvision
 
+from modules.resnet_hacks import modify_resnet_model
+
 
 class Identity(nn.Module):
     def __init__(self):
@@ -40,7 +42,9 @@ class SimCLR(nn.Module):
         }
         if name not in resnets.keys():
             raise KeyError(f"{name} is not a valid ResNet version")
-        return resnets[name]
+        return modify_resnet_model(
+            resnets[name], cifar_stem=self.args.dataset.startswith("CIFAR"), v1=True
+        )
 
 
     def forward(self, x):
