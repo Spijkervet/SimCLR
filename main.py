@@ -16,6 +16,7 @@ except ImportError:
 
 from model import load_model, save_model
 from modules import NT_Xent
+from modules.sync_batchnorm import convert_model
 from modules.transformations import TransformsSimCLR
 from utils import post_config_hook
 
@@ -60,6 +61,7 @@ def main(_run, _log):
     args = post_config_hook(args, _run)
 
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    args.n_gpu = torch.cuda.device_count()
 
     root = "./datasets"
 
@@ -86,6 +88,14 @@ def main(_run, _log):
     )
 
     model, optimizer, scheduler = load_model(args, train_loader)
+
+    print(f"Using {args.n_gpu}'s")
+    if args.n_gpu > 1:
+        model = torch.nn.DataParallel(model)
+        model = convert_model(model)
+        model = model.to(args.device)
+
+    print(model)
 
     tb_dir = os.path.join(args.out_dir, _run.experiment_info["name"])
     os.makedirs(tb_dir)
