@@ -13,8 +13,8 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 # TensorBoard
 from torch.utils.tensorboard import SummaryWriter
 
-from model import load_model, save_model
-from modules import NT_Xent
+from model import load_optimizer, save_model
+from modules import SimCLR, NT_Xent, get_resnet
 from modules.transformations import TransformsSimCLR
 from utils import yaml_config_hook
 
@@ -85,20 +85,35 @@ def main(gpu, args):
         sampler=train_sampler,
     )
 
-    model, optimizer, scheduler = load_model(args, train_loader)
+    # initialize ResNet
+    encoder = get_resnet(args.resnet, pretrained=False)
+    n_features = encoder.fc.in_features  # get dimensions of fc layer
 
+    # initialize model
+    model = SimCLR(args, encoder, n_features)
+    if args.reload:
+        model_fp = os.path.join(
+            args.model_path, "checkpoint_{}.tar".format(args.epoch_num)
+        )
+        model.load_state_dict(torch.load(model_fp, map_location=args.device.type))
+    model = model.to(args.device)
+    
+    # optimizer / loss
+    optimizer, scheduler = load_optimizer(args, model)
+    criterion = NT_Xent(args.batch_size, args.temperature, args.device)
+
+    # DDP
     if args.nodes > 1:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
         model = DDP(model, device_ids=[gpu])
 
-    criterion = NT_Xent(args.batch_size, args.temperature, args.device)
 
     writer = SummaryWriter()
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
-        lr = optimizer.param_groups[0]["lr"]
         t0 = time.time()
+        lr = optimizer.param_groups[0]["lr"]
         loss_epoch = train(args, train_loader, model, criterion, optimizer, writer)
         print(time.time() - t0)
 

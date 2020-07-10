@@ -3,16 +3,7 @@ import torch
 from modules import SimCLR, LARS
 
 
-def load_model(args, loader, reload_model=False):
-    model = SimCLR(args)
-
-    if reload_model:
-        model_fp = os.path.join(
-            args.model_path, "checkpoint_{}.tar".format(args.epoch_num)
-        )
-        model.load_state_dict(torch.load(model_fp, map_location=args.device.type))
-
-    model = model.to(args.device)
+def load_optimizer(args, model):
 
     scheduler = None
     if args.optimizer == "Adam":
@@ -35,7 +26,7 @@ def load_model(args, loader, reload_model=False):
     else:
         raise NotImplementedError
 
-    return model, optimizer, scheduler
+    return optimizer, scheduler
 
 
 def save_model(args, model, optimizer):
