@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torchvision
 
-
 class Identity(nn.Module):
     def __init__(self):
         super(Identity, self).__init__()
@@ -43,10 +42,15 @@ class SimCLR(nn.Module):
         return resnets[name]
 
 
-    def forward(self, x):
-        h = self.encoder(x)
-        z = self.projector(h)
+    def forward(self, x_i, x_j):
+        h_i = self.encoder(x_i)
+        h_j = self.encoder(x_j)
+
+        z_i = self.projector(h_i)
+        z_j = self.projector(h_j)
 
         if self.args.normalize:
-            z = nn.functional.normalize(z, dim=1)
-        return h, z
+            z_i = nn.functional.normalize(z_i, dim=1)
+            z_j = nn.functional.normalize(z_j, dim=1)
+            
+        return h_i, h_j, z_i, z_j
