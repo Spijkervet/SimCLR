@@ -89,7 +89,6 @@ def main(gpu, args):
     criterion = NT_Xent(args.batch_size, args.temperature, args.device)
 
     writer = SummaryWriter()
-    args.out_dir = writer.log_dir
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
@@ -127,11 +126,12 @@ if __name__ == "__main__":
     os.environ["MASTER_ADDR"] = "127.0.0.1"
     os.environ["MASTER_PORT"] = "5000"
 
+    if not os.path.exists(args.model_path):
+        os.makedirs(args.model_path)
 
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     args.num_gpus = torch.cuda.device_count()
     args.world_size = args.gpus * args.nodes
-    args.workers = args.workers / args.num_gpus # devide CPU workers among GPU's
 
     if args.nodes > 1:
         print(f"Training with {args.nodes} nodes, waiting until all nodes join before starting training")

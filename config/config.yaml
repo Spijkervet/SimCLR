@@ -2,7 +2,7 @@
 nodes: 1
 gpus: 1 # I recommend always assigning 1 GPU to 1 node
 nr: 0 # machine nr. in node (0 -- nodes - 1)
-workers: 16
+workers: 8
 
 
 # train options
@@ -25,7 +25,7 @@ weight_decay: 1.0e-6 # "optimized using LARS [...] and weight decay of 10−6"
 temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch sizes
 
 # reload options
-model_path: "logs/0" # set to the directory containing `checkpoint_##.tar` 
+model_path: "save" # set to the directory containing `checkpoint_##.tar` 
 epoch_num: 100 # set to checkpoint number
 
 # mixed-precision training
