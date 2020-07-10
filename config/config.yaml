@@ -1,8 +1,14 @@
+# distributed training
+nodes: 1
+gpus: 1 # I recommend always assigning 1 GPU to 1 node
+nr: 0 # machine nr. in node (0 -- nodes - 1)
+workers: 16
+
+
 # train options
 seed: 42 # sacred handles automatic seeding when passed in the config
 batch_size: 128
 image_size: 96
-workers: 16
 start_epoch: 0
 epochs: 100
 dataset: "CIFAR10" # STL10

@@ -1,24 +1,23 @@
 import os
+import numpy as np
 import torch
 import torchvision
 import argparse
 import time
-
-from torch.utils.tensorboard import SummaryWriter
 
 # distributed training
 import torch.distributed as dist
 import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
 
+# TensorBoard
+from torch.utils.tensorboard import SummaryWriter
+
 from model import load_model, save_model
 from modules import NT_Xent
 from modules.sync_batchnorm import convert_model
 from modules.transformations import TransformsSimCLR
 from utils import yaml_config_hook
-
-#### pass configuration
-from experiment import ex
 
 
 def train(args, train_loader, model, criterion, optimizer, writer):
@@ -46,13 +45,15 @@ def train(args, train_loader, model, criterion, optimizer, writer):
 
 def main(gpu, args):
     rank = args.nr * args.gpus + gpu
-    dist.init_process_group("nccl", rank=rank, world_size=args.world_size)
 
-    torch.manual_seed(0)
+    if args.nodes > 1:
+        dist.init_process_group("nccl", rank=rank, world_size=args.world_size)
+
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
     torch.cuda.set_device(gpu)
 
     root = "./datasets"
-    train_sampler = None
     if args.dataset == "STL10":
         train_dataset = torchvision.datasets.STL10(
             root, split="unlabeled", download=True, transform=TransformsSimCLR(size=args.image_size)
@@ -64,10 +65,12 @@ def main(gpu, args):
     else:
         raise NotImplementedError
 
-    # train_sampler = None
-    train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_dataset, num_replicas=args.world_size, rank=rank
-    )
+    if args.nodes > 1:
+        train_sampler = torch.utils.data.distributed.DistributedSampler(
+            train_dataset, num_replicas=args.world_size, rank=rank, shuffle=True
+        )
+    else:
+        train_sampler = None
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
@@ -79,14 +82,14 @@ def main(gpu, args):
     )
 
     model, optimizer, scheduler = load_model(args, train_loader)
-    model = DDP(model, device_ids=[gpu], find_unused_parameters=True)
 
-
-    writer = SummaryWriter()
-    args.out_dir = writer.log_dir
+    if args.nodes > 1:
+        model = DDP(model, device_ids=[gpu])
 
     criterion = NT_Xent(args.batch_size, args.temperature, args.device)
 
+    writer = SummaryWriter()
+    args.out_dir = writer.log_dir
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
@@ -112,19 +115,24 @@ def main(gpu, args):
     save_model(args, model, optimizer)
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='Process some integers.')
     config = yaml_config_hook("./config/config.yaml")
-    args = argparse.Namespace(**config)
+    for k, v in config.items():
+        parser.add_argument(f"--{k}", default=v, type=type(v))
 
-    args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    args.n_gpu = torch.cuda.device_count()
+    args = parser.parse_args()
 
-    args.nodes = 2
-    args.gpus = 1
-    args.nr = 1
     # Master address for distributed data parallel
     os.environ["MASTER_ADDR"] = "127.0.0.1"
-    os.environ["MASTER_PORT"] = "8000"
+    os.environ["MASTER_PORT"] = "5000"
+
+
+    args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     args.world_size = args.gpus * args.nodes
 
-    mp.spawn(main, args=(args,), nprocs=args.gpus, join=True)
-    # main(0, args)
+    if args.nodes > 1:
+        print(f"Training with {args.nodes} nodes, waiting until all nodes join before starting training")
+        mp.spawn(main, args=(args,), nprocs=args.gpus, join=True)
+    else:
+        main(0, args)

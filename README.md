@@ -77,10 +77,20 @@ Or alternatively with pip:
 pip install -r requirements.txt
 ```
 
-Then, simply run:
+Then, simply run for single GPU or CPU training:
 ```
 python main.py
 ```
+
+For distributed training (DDP), use for every process in nodes, in which N is the GPU number you would like to dedicate the process to:
+```
+CUDA_VISIBLE_DEVICES=0 python3 main.py --nodes 2 --nr 0
+CUDA_VISIBLE_DEVICES=1 python3 main.py --nodes 2 --nr 1
+CUDA_VISIBLE_DEVICES=2 python3 main.py --nodes 2 --nr 2
+CUDA_VISIBLE_DEVICES=N python3 main.py --nodes 2 --nr 3
+```
+
+`--nr` corresponds to the process number of the N nodes we make available for training.
 
 ### Testing
 To test a trained model, make sure to set the `model_path` variable in the `config/config.yaml` to the log ID of the training (e.g. `logs/0`).
