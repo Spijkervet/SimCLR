@@ -35,19 +35,6 @@ def load_model(args, loader, reload_model=False):
     else:
         raise NotImplementedError
 
-    if args.fp16:
-        try:
-            from apex import amp
-        except ImportError:
-            raise ImportError(
-                "Install the apex package from https://www.github.com/nvidia/apex to use fp16 for training"
-            )
-
-        print("### USING FP16 ###")
-        model, optimizer = amp.initialize(
-            model, optimizer, opt_level=args.fp16_opt_level
-        )
-
     return model, optimizer, scheduler
 
 

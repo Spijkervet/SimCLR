@@ -3,7 +3,7 @@ nodes: 1
 gpus: 1 # I recommend always assigning 1 GPU to 1 node
 nr: 0 # machine nr. in node (0 -- nodes - 1)
 workers: 8
-
+dataset_dir: "./datasets"
 
 # train options
 seed: 42 # sacred handles automatic seeding when passed in the config
@@ -27,11 +27,6 @@ temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch 
 # reload options
 model_path: "save" # set to the directory containing `checkpoint_##.tar` 
 epoch_num: 100 # set to checkpoint number
-
-# mixed-precision training
-fp16: False 
-fp16_opt_level: "O2"
-
 
 # logistic regression options
 logistic_batch_size: 256

@@ -43,6 +43,7 @@ def train(args, train_loader, model, criterion, optimizer, writer):
         args.global_step += 1
     return loss_epoch
 
+
 def main(gpu, args):
     rank = args.nr * args.gpus + gpu
 
@@ -53,14 +54,18 @@ def main(gpu, args):
     np.random.seed(args.seed)
     torch.cuda.set_device(gpu)
 
-    root = "./datasets"
     if args.dataset == "STL10":
         train_dataset = torchvision.datasets.STL10(
-            root, split="unlabeled", download=True, transform=TransformsSimCLR(size=args.image_size)
+            args.dataset_dir,
+            split="unlabeled",
+            download=True,
+            transform=TransformsSimCLR(size=args.image_size),
         )
     elif args.dataset == "CIFAR10":
         train_dataset = torchvision.datasets.CIFAR10(
-            root, download=True, transform=TransformsSimCLR(size=args.image_size)
+            args.dataset_dir,
+            download=True,
+            transform=TransformsSimCLR(size=args.image_size),
         )
     else:
         raise NotImplementedError
@@ -92,7 +97,7 @@ def main(gpu, args):
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
-        lr = optimizer.param_groups[0]['lr']
+        lr = optimizer.param_groups[0]["lr"]
         t0 = time.time()
         loss_epoch = train(args, train_loader, model, criterion, optimizer, writer)
         print(time.time() - t0)
@@ -113,9 +118,10 @@ def main(gpu, args):
     ## end training
     save_model(args, model, optimizer)
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description="SimCLR")
     config = yaml_config_hook("./config/config.yaml")
     for k, v in config.items():
         parser.add_argument(f"--{k}", default=v, type=type(v))
@@ -124,7 +130,7 @@ if __name__ == "__main__":
 
     # Master address for distributed data parallel
     os.environ["MASTER_ADDR"] = "127.0.0.1"
-    os.environ["MASTER_PORT"] = "5000"
+    os.environ["MASTER_PORT"] = "8000"
 
     if not os.path.exists(args.model_path):
         os.makedirs(args.model_path)
@@ -134,7 +140,9 @@ if __name__ == "__main__":
     args.world_size = args.gpus * args.nodes
 
     if args.nodes > 1:
-        print(f"Training with {args.nodes} nodes, waiting until all nodes join before starting training")
+        print(
+            f"Training with {args.nodes} nodes, waiting until all nodes join before starting training"
+        )
         mp.spawn(main, args=(args,), nprocs=args.gpus, join=True)
     else:
         main(0, args)

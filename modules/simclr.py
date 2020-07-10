@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torchvision
 
+
 class Identity(nn.Module):
     def __init__(self):
         super(Identity, self).__init__()
@@ -30,7 +31,6 @@ class SimCLR(nn.Module):
             nn.ReLU(),
             nn.Linear(self.n_features, args.projection_dim, bias=False),
         )
-        
 
     def get_resnet(self, name):
         resnets = {
@@ -40,7 +40,6 @@ class SimCLR(nn.Module):
         if name not in resnets.keys():
             raise KeyError(f"{name} is not a valid ResNet version")
         return resnets[name]
-
 
     def forward(self, x_i, x_j):
         h_i = self.encoder(x_i)
@@ -52,5 +51,5 @@ class SimCLR(nn.Module):
         if self.args.normalize:
             z_i = nn.functional.normalize(z_i, dim=1)
             z_j = nn.functional.normalize(z_j, dim=1)
-            
+
         return h_i, h_j, z_i, z_j

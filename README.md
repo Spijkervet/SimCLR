@@ -23,13 +23,13 @@ git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar
 sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
 conda activate simclr
-python -m testing.logistic_regression with dataset=STL10 model_path=. epoch_num=100
+python -m testing.logistic_regression --dataset=STL10 --model_path=. --epoch_num=100
 ```
 
 #### CPU
 ```
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar -O checkpoint_100.tar
-python -m testing.logistic_regression with model_path=. epoch_num=100 resnet=resnet18 logistic_batch_size=32
+python -m testing.logistic_regression --model_path=. --epoch_num=100 --resnet=resnet18 --logistic_batch_size=32
 ```
 
 ### Results
@@ -53,7 +53,7 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 | [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | Adam | 0.765 |
 | [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | Adam | 0.719 |
 
-`python -m testing.logistic_regression with model_path=. epoch_num=100`
+`python -m testing.logistic_regression --model_path=. --epoch_num=100`
 
 #### LARS optimizer
 The LARS optimizer is implemented in `modules/lars.py`. It can be activated by adjusting the `config/config.yaml` optimizer setting to: `optimizer: "LARS"`. It is still experimental and has not been thoroughly tested.
@@ -84,10 +84,10 @@ python main.py
 
 For distributed training (DDP), use for every process in nodes, in which N is the GPU number you would like to dedicate the process to:
 ```
-CUDA_VISIBLE_DEVICES=0 python3 main.py --nodes 2 --nr 0
-CUDA_VISIBLE_DEVICES=1 python3 main.py --nodes 2 --nr 1
-CUDA_VISIBLE_DEVICES=2 python3 main.py --nodes 2 --nr 2
-CUDA_VISIBLE_DEVICES=N python3 main.py --nodes 2 --nr 3
+CUDA_VISIBLE_DEVICES=0 python main.py --nodes 2 --nr 0
+CUDA_VISIBLE_DEVICES=1 python main.py --nodes 2 --nr 1
+CUDA_VISIBLE_DEVICES=2 python main.py --nodes 2 --nr 2
+CUDA_VISIBLE_DEVICES=N python main.py --nodes 2 --nr 3
 ```
 
 `--nr` corresponds to the process number of the N nodes we make available for training.
@@ -102,7 +102,7 @@ python -m testing.logistic_regression
 
 or in place:
 ```
-python -m testing.logistic_regression with model_path=./logs/0 epoch_num=40
+python -m testing.logistic_regression --model_path=./save --epoch_num=40
 ```
 
 
@@ -114,6 +114,7 @@ batch_size: 256
 workers: 16
 start_epoch: 0
 epochs: 40
+dataset_dir: "./datasets"
 
 # model options
 resnet: "resnet18"
