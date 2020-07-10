@@ -129,7 +129,9 @@ if __name__ == "__main__":
 
 
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    args.num_gpus = torch.cuda.device_count()
     args.world_size = args.gpus * args.nodes
+    args.workers = args.workers / args.num_gpus # devide CPU workers among GPU's
 
     if args.nodes > 1:
         print(f"Training with {args.nodes} nodes, waiting until all nodes join before starting training")
