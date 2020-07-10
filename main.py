@@ -15,7 +15,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 from model import load_model, save_model
 from modules import NT_Xent
-from modules.sync_batchnorm import convert_model
 from modules.transformations import TransformsSimCLR
 from utils import yaml_config_hook
 
@@ -89,6 +88,7 @@ def main(gpu, args):
     model, optimizer, scheduler = load_model(args, train_loader)
 
     if args.nodes > 1:
+        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
         model = DDP(model, device_ids=[gpu])
 
     criterion = NT_Xent(args.batch_size, args.temperature, args.device)
