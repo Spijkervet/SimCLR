@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torchvision
 import argparse
-import time
 
 # distributed training
 import torch.distributed as dist
@@ -112,10 +111,8 @@ def main(gpu, args):
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
-        t0 = time.time()
         lr = optimizer.param_groups[0]["lr"]
         loss_epoch = train(args, train_loader, model, criterion, optimizer, writer)
-        print(time.time() - t0)
 
         if scheduler:
             scheduler.step()
