@@ -19,7 +19,7 @@ Open SimCLR results comparison on tensorboard.dev:
   </a>
 </p>
 
-### Quickstart
+### Quickstart (fine-tune linear classifier)
 This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`82.9%` on the STL-10 test set.
 ```
 git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
@@ -34,6 +34,19 @@ python -m testing.logistic_regression --dataset=STL10 --model_path=. --epoch_num
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar -O checkpoint_100.tar
 python -m testing.logistic_regression --model_path=. --epoch_num=100 --resnet=resnet18 --logistic_batch_size=32
 ```
+
+### Quickstart (pre-train ResNet encoder using SimCLR)
+```
+python main.py
+```
+With distributed data parallel (DDP) training:
+```
+CUDA_VISIBLE_DEVICES=0 python main.py --nodes 2 --nr 0
+CUDA_VISIBLE_DEVICES=1 python main.py --nodes 2 --nr 1
+CUDA_VISIBLE_DEVICES=2 python main.py --nodes 2 --nr 2
+CUDA_VISIBLE_DEVICES=N python main.py --nodes 2 --nr 3
+```
+
 
 ### Results
 These are the top-1 accuracy of linear classifiers trained on the (frozen) representations learned by SimCLR:
