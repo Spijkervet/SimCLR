@@ -1,13 +1,13 @@
+import os
+import argparse
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import argparse
 import numpy as np
 
-from model import load_model
 from utils import yaml_config_hook
 
-from modules import LogisticRegression
+from modules import SimCLR, LogisticRegression, get_resnet
 from modules.transformations import TransformsSimCLR
 
 
@@ -162,9 +162,17 @@ if __name__ == "__main__":
         num_workers=args.workers,
     )
 
-    simclr_model, _, _ = load_model(args, train_loader, reload_model=True)
+    encoder = get_resnet(args.resnet, pretrained=False)
+    n_features = encoder.fc.in_features  # get dimensions of fc layer
+
+    # load pre-trained model from checkpoint
+    simclr_model = SimCLR(args, encoder, n_features)
+    model_fp = os.path.join(
+        args.model_path, "checkpoint_{}.tar".format(args.epoch_num)
+    )
+    simclr_model.load_state_dict(torch.load(model_fp, map_location=args.device.type))
     simclr_model = simclr_model.to(args.device)
-    simclr_model.eval()
+    
 
     ## Logistic Regression
     n_classes = 10  # CIFAR-10 / STL-10

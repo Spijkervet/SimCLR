@@ -23,7 +23,7 @@ git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar
 sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
 conda activate simclr
-python -m testing.logistic_regression --dataset=STL10 --model_path=. --epoch_num=100
+python -m testing.logistic_regression --dataset=STL10 --model_path=. --epoch_num=100 --resnet resnet50
 ```
 
 #### CPU
