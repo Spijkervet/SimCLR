@@ -1,6 +1,9 @@
 # SimCLR
 PyTorch implementation of SimCLR: A Simple Framework for Contrastive Learning of Visual Representations by T. Chen et al.
-With support for global batch normalization and the LARS (Layer-wise Adaptive Rate Scaling) optimizer.
+Including support for:
+- Distributed data parallel training
+- Global batch normalization
+- LARS (Layer-wise Adaptive Rate Scaling) optimizer.
 
 [Link to paper](https://arxiv.org/pdf/2002.05709.pdf)
 
