@@ -1,5 +1,7 @@
 import torch.nn as nn
 import torchvision
+from modules.resnet_hacks import modify_resnet_model
+
 from .identity import Identity
 
 class SimCLR(nn.Module):
@@ -22,6 +24,18 @@ class SimCLR(nn.Module):
             nn.Linear(self.n_features, self.n_features, bias=False),
             nn.ReLU(),
             nn.Linear(self.n_features, args.projection_dim, bias=False),
+        )
+
+        
+    def get_resnet(self, name):
+        resnets = {
+            "resnet18": torchvision.models.resnet18(),
+            "resnet50": torchvision.models.resnet50(),
+        }
+        if name not in resnets.keys():
+            raise KeyError(f"{name} is not a valid ResNet version")
+        return modify_resnet_model(
+            resnets[name], cifar_stem=self.args.dataset.startswith("CIFAR"), v1=True
         )
 
 
