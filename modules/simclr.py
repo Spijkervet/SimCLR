@@ -1,40 +1,32 @@
 import torch.nn as nn
 import torchvision
-
 from modules.resnet_hacks import modify_resnet_model
 
-
-class Identity(nn.Module):
-    def __init__(self):
-        super(Identity, self).__init__()
-
-    def forward(self, x):
-        return x
-
+from .identity import Identity
 
 class SimCLR(nn.Module):
     """
     We opt for simplicity and adopt the commonly used ResNet (He et al., 2016) to obtain hi = f(x ̃i) = ResNet(x ̃i) where hi ∈ Rd is the output after the average pooling layer.
     """
 
-    def __init__(self, args):
+    def __init__(self, args, encoder, n_features):
         super(SimCLR, self).__init__()
 
-        self.args = args
+        self.normalize = args.normalize
+        self.encoder = encoder
+        self.n_features = n_features
 
-        self.encoder = self.get_resnet(args.resnet)
-
-        self.n_features = self.encoder.fc.in_features  # get dimensions of fc layer
-        self.encoder.fc = Identity()  # remove fully-connected layer after pooling layer
-
+        # Replace the fc layer with an Identity function
+        self.encoder.fc = Identity()
+        
         # We use a MLP with one hidden layer to obtain z_i = g(h_i) = W(2)σ(W(1)h_i) where σ is a ReLU non-linearity.
         self.projector = nn.Sequential(
             nn.Linear(self.n_features, self.n_features, bias=False),
             nn.ReLU(),
             nn.Linear(self.n_features, args.projection_dim, bias=False),
         )
-        
 
+        
     def get_resnet(self, name):
         resnets = {
             "resnet18": torchvision.models.resnet18(),
@@ -47,10 +39,15 @@ class SimCLR(nn.Module):
         )
 
 
-    def forward(self, x):
-        h = self.encoder(x)
-        z = self.projector(h)
+    def forward(self, x_i, x_j):
+        h_i = self.encoder(x_i)
+        h_j = self.encoder(x_j)
 
-        if self.args.normalize:
-            z = nn.functional.normalize(z, dim=1)
-        return h, z
+        z_i = self.projector(h_i)
+        z_j = self.projector(h_j)
+
+        if self.normalize:
+            z_i = nn.functional.normalize(z_i, dim=1)
+            z_j = nn.functional.normalize(z_j, dim=1)
+
+        return h_i, h_j, z_i, z_j

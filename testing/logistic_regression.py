@@ -1,18 +1,17 @@
+import os
+import argparse
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import argparse
 import numpy as np
 
-from experiment import ex
-from model import load_model
-from utils import post_config_hook
+from utils import yaml_config_hook
 
-from modules import LogisticRegression
+from modules import SimCLR, LogisticRegression, get_resnet
 from modules.transformations import TransformsSimCLR
 
 
-def inference(loader, context_model, device):
+def inference(loader, simclr_model, device):
     feature_vector = []
     labels_vector = []
     for step, (x, y) in enumerate(loader):
@@ -20,7 +19,7 @@ def inference(loader, context_model, device):
 
         # get encoding
         with torch.no_grad():
-            h, z = context_model(x)
+            h, _, z, _ = simclr_model(x, x)
 
         h = h.detach()
 
@@ -36,9 +35,9 @@ def inference(loader, context_model, device):
     return feature_vector, labels_vector
 
 
-def get_features(context_model, train_loader, test_loader, device):
-    train_X, train_y = inference(train_loader, context_model, device)
-    test_X, test_y = inference(test_loader, context_model, device)
+def get_features(simclr_model, train_loader, test_loader, device):
+    train_X, train_y = inference(train_loader, simclr_model, device)
+    test_X, test_y = inference(test_loader, simclr_model, device)
     return train_X, train_y, test_X, test_y
 
 
@@ -109,40 +108,40 @@ def test(args, loader, simclr_model, model, criterion, optimizer):
     return loss_epoch, accuracy_epoch
 
 
-@ex.automain
-def main(_run, _log):
-    args = argparse.Namespace(**_run.config)
-    args = post_config_hook(args, _run)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="SimCLR")
+    config = yaml_config_hook("./config/config.yaml")
+    for k, v in config.items():
+        parser.add_argument(f"--{k}", default=v, type=type(v))
 
-    args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-    root = "./datasets"
+    args = parser.parse_args()
+    args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if args.dataset == "STL10":
         train_dataset = torchvision.datasets.STL10(
-            root,
+            args.dataset_dir,
             split="train",
             download=True,
-            transform=TransformsSimCLR(size=224).test_transform,
+            transform=TransformsSimCLR(size=args.image_size).test_transform,
         )
         test_dataset = torchvision.datasets.STL10(
-            root,
+            args.dataset_dir,
             split="test",
             download=True,
-            transform=TransformsSimCLR(size=224).test_transform,
+            transform=TransformsSimCLR(size=args.image_size).test_transform,
         )
     elif args.dataset == "CIFAR10":
         train_dataset = torchvision.datasets.CIFAR10(
-            root,
+            args.dataset_dir,
             train=True,
             download=True,
-            transform=TransformsSimCLR(size=224).test_transform,
+            transform=TransformsSimCLR(size=args.image_size).test_transform,
         )
         test_dataset = torchvision.datasets.CIFAR10(
-            root,
+            args.dataset_dir,
             train=False,
             download=True,
-            transform=TransformsSimCLR(size=224).test_transform,
+            transform=TransformsSimCLR(size=args.image_size).test_transform,
         )
     else:
         raise NotImplementedError
@@ -163,12 +162,20 @@ def main(_run, _log):
         num_workers=args.workers,
     )
 
-    simclr_model, _, _ = load_model(args, train_loader, reload_model=True)
+    encoder = get_resnet(args.resnet, pretrained=False)
+    n_features = encoder.fc.in_features  # get dimensions of fc layer
+
+    # load pre-trained model from checkpoint
+    simclr_model = SimCLR(args, encoder, n_features)
+    model_fp = os.path.join(
+        args.model_path, "checkpoint_{}.tar".format(args.epoch_num)
+    )
+    simclr_model.load_state_dict(torch.load(model_fp, map_location=args.device.type))
     simclr_model = simclr_model.to(args.device)
-    simclr_model.eval()
+    
 
     ## Logistic Regression
-    n_classes = 10  # stl-10
+    n_classes = 10  # CIFAR-10 / STL-10
     model = LogisticRegression(simclr_model.n_features, n_classes)
     model = model.to(args.device)
 

@@ -11,6 +11,7 @@ import re
 
 EETA_DEFAULT = 0.001
 
+
 class LARS(Optimizer):
     """
     Layer-wise Adaptive Rate Scaling for large batch training.
@@ -117,7 +118,11 @@ class LARS(Optimizer):
                     device = g_norm.get_device()
                     trust_ratio = torch.where(
                         w_norm.ge(0),
-                        torch.where(g_norm.ge(0), (self.eeta * w_norm / g_norm), torch.Tensor([1.0]).to(device)),
+                        torch.where(
+                            g_norm.ge(0),
+                            (self.eeta * w_norm / g_norm),
+                            torch.Tensor([1.0]).to(device),
+                        ),
                         torch.Tensor([1.0]).to(device),
                     ).item()
 

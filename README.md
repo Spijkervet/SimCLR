@@ -1,6 +1,9 @@
 # SimCLR
 PyTorch implementation of SimCLR: A Simple Framework for Contrastive Learning of Visual Representations by T. Chen et al.
-With support for the LARS (Layer-wise Adaptive Rate Scaling) optimizer.
+Including support for:
+- Distributed data parallel training
+- Global batch normalization
+- LARS (Layer-wise Adaptive Rate Scaling) optimizer.
 
 [Link to paper](https://arxiv.org/pdf/2002.05709.pdf)
 
@@ -16,21 +19,34 @@ Open SimCLR results comparison on tensorboard.dev:
   </a>
 </p>
 
-### Quickstart
+### Quickstart (fine-tune linear classifier)
 This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`82.9%` on the STL-10 test set.
 ```
 git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar
 sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
 conda activate simclr
-python -m testing.logistic_regression with dataset=STL10 model_path=. epoch_num=100
+python -m testing.logistic_regression --dataset=STL10 --model_path=. --epoch_num=100 --resnet resnet50
 ```
 
 #### CPU
 ```
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar -O checkpoint_100.tar
-python -m testing.logistic_regression with model_path=. epoch_num=100 resnet=resnet18 logistic_batch_size=32
+python -m testing.logistic_regression --model_path=. --epoch_num=100 --resnet=resnet18 --logistic_batch_size=32
 ```
+
+### Quickstart (pre-train ResNet encoder using SimCLR)
+```
+python main.py
+```
+With distributed data parallel (DDP) training:
+```
+CUDA_VISIBLE_DEVICES=0 python main.py --nodes 2 --nr 0
+CUDA_VISIBLE_DEVICES=1 python main.py --nodes 2 --nr 1
+CUDA_VISIBLE_DEVICES=2 python main.py --nodes 2 --nr 2
+CUDA_VISIBLE_DEVICES=N python main.py --nodes 2 --nr 3
+```
+
 
 ### Results
 These are the top-1 accuracy of linear classifiers trained on the (frozen) representations learned by SimCLR:
@@ -53,15 +69,7 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 | [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | Adam | 0.765 |
 | [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | Adam | 0.719 |
 
-`python -m testing.logistic_regression with model_path=. epoch_num=100`
-
-#### Mixed-precision training
-I am still evaluating the results, but using mixed-precision training allows you to train SimCLR on CIFAR-10 with ResNet50 and a batch size of 512 on a single 2080Ti (allocating ±11.2G). Use `fp16: True` in the `config/config.yaml` file to use mixed-precision training. This will yield slightly worse results.
-
-##### MP results
-ResNet50, 512 batch_size, O1: `0.7862`
-
-ResNet50, 512 batch_size, O2: `0.7797`
+`python -m testing.logistic_regression --model_path=. --epoch_num=100`
 
 #### LARS optimizer
 The LARS optimizer is implemented in `modules/lars.py`. It can be activated by adjusting the `config/config.yaml` optimizer setting to: `optimizer: "LARS"`. It is still experimental and has not been thoroughly tested.
@@ -85,10 +93,20 @@ Or alternatively with pip:
 pip install -r requirements.txt
 ```
 
-Then, simply run:
+Then, simply run for single GPU or CPU training:
 ```
 python main.py
 ```
+
+For distributed training (DDP), use for every process in nodes, in which N is the GPU number you would like to dedicate the process to:
+```
+CUDA_VISIBLE_DEVICES=0 python main.py --nodes 2 --nr 0
+CUDA_VISIBLE_DEVICES=1 python main.py --nodes 2 --nr 1
+CUDA_VISIBLE_DEVICES=2 python main.py --nodes 2 --nr 2
+CUDA_VISIBLE_DEVICES=N python main.py --nodes 2 --nr 3
+```
+
+`--nr` corresponds to the process number of the N nodes we make available for training.
 
 ### Testing
 To test a trained model, make sure to set the `model_path` variable in the `config/config.yaml` to the log ID of the training (e.g. `logs/0`).
@@ -100,7 +118,7 @@ python -m testing.logistic_regression
 
 or in place:
 ```
-python -m testing.logistic_regression with model_path=./logs/0 epoch_num=40
+python -m testing.logistic_regression --model_path=./save --epoch_num=40
 ```
 
 
@@ -112,6 +130,7 @@ batch_size: 256
 workers: 16
 start_epoch: 0
 epochs: 40
+dataset_dir: "./datasets"
 
 # model options
 resnet: "resnet18"
@@ -131,9 +150,9 @@ logistic_epochs: 100
 ```
 
 ## Logging and TensorBoard
-The `sacred` package is used to log all experiments into the `logs` directory. To view results in TensorBoard, run:
+To view results in TensorBoard, run:
 ```
-tensorboard --logdir logs
+tensorboard --logdir runs
 ```
 
 ## Optimizers and learning rate schedule
@@ -147,6 +166,5 @@ This implementation features the Adam optimizer and the LARS optimizer, with the
 torch
 torchvision
 tensorboard
-sacred
 pyyaml
 ```
