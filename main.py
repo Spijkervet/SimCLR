@@ -7,6 +7,7 @@ import argparse
 # distributed training
 import torch.distributed as dist
 import torch.multiprocessing as mp
+from torch.nn.parallel import DataParallel
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 # TensorBoard
@@ -15,6 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 from model import load_optimizer, save_model
 from modules import SimCLR, NT_Xent, get_resnet
 from modules.transformations import TransformsSimCLR
+from modules.sync_batchnorm import convert_model
 from utils import yaml_config_hook
 
 
@@ -33,12 +35,18 @@ def train(args, train_loader, model, criterion, optimizer, writer):
 
         optimizer.step()
 
-        if step % 50 == 0:
+        if dist.is_available() and dist.is_initialized():
+            loss = loss.data.clone()
+            dist.all_reduce(loss.div_(dist.get_world_size()))
+
+        if args.nr == 0 and step % 50 == 0:
             print(f"Step [{step}/{len(train_loader)}]\t Loss: {loss.item()}")
 
-        writer.add_scalar("Loss/train_epoch", loss.item(), args.global_step)
+        if args.nr == 0:
+            writer.add_scalar("Loss/train_epoch", loss.item(), args.global_step)
+            args.global_step += 1
+
         loss_epoch += loss.item()
-        args.global_step += 1
     return loss_epoch
 
 
@@ -47,10 +55,10 @@ def main(gpu, args):
 
     if args.nodes > 1:
         dist.init_process_group("nccl", rank=rank, world_size=args.world_size)
+        torch.cuda.set_device(gpu)
 
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
-    torch.cuda.set_device(gpu)
 
     if args.dataset == "STL10":
         train_dataset = torchvision.datasets.STL10(
@@ -96,36 +104,45 @@ def main(gpu, args):
         )
         model.load_state_dict(torch.load(model_fp, map_location=args.device.type))
     model = model.to(args.device)
-    
+
     # optimizer / loss
     optimizer, scheduler = load_optimizer(args, model)
-    criterion = NT_Xent(args.batch_size, args.temperature, args.device)
+    criterion = NT_Xent(args.batch_size, args.temperature, args.device, args.world_size)
 
-    # DDP
-    if args.nodes > 1:
-        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
-        model = DDP(model, device_ids=[gpu])
+    # DDP / DP
+    if args.dataparallel:
+        model = convert_model(model)
+        model = DataParallel(model)
+    else:
+        if args.nodes > 1:
+            model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+            model = DDP(model, device_ids=[gpu])
 
+    model = model.to(args.device)
 
-    writer = SummaryWriter()
+    writer = None
+    if args.nr == 0:
+        writer = SummaryWriter()
+
     args.global_step = 0
     args.current_epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
         lr = optimizer.param_groups[0]["lr"]
         loss_epoch = train(args, train_loader, model, criterion, optimizer, writer)
 
-        if scheduler:
+        if args.nr == 0 and scheduler:
             scheduler.step()
 
-        if epoch % 10 == 0:
+        if args.nr == 0 and epoch % 10 == 0:
             save_model(args, model, optimizer)
 
-        writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
-        writer.add_scalar("Misc/learning_rate", lr, epoch)
-        print(
-            f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}\t lr: {round(lr, 5)}"
-        )
-        args.current_epoch += 1
+        if args.nr == 0:
+            writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
+            writer.add_scalar("Misc/learning_rate", lr, epoch)
+            print(
+                f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}\t lr: {round(lr, 5)}"
+            )
+            args.current_epoch += 1
 
     ## end training
     save_model(args, model, optimizer)
