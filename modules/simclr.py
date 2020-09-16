@@ -13,7 +13,6 @@ class SimCLR(nn.Module):
     def __init__(self, args, encoder, n_features):
         super(SimCLR, self).__init__()
 
-        self.normalize = args.normalize
         self.encoder = encoder
         self.n_features = n_features
 
@@ -33,9 +32,4 @@ class SimCLR(nn.Module):
 
         z_i = self.projector(h_i)
         z_j = self.projector(h_j)
-
-        if self.normalize:
-            z_i = nn.functional.normalize(z_i, dim=1)
-            z_j = nn.functional.normalize(z_j, dim=1)
-
         return h_i, h_j, z_i, z_j
