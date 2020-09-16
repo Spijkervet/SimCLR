@@ -17,7 +17,6 @@ pretrain: True
 
 # model options
 resnet: "resnet18"
-normalize: True
 projection_dim: 64 # "[...] to project the representation to a 128-dimensional latent space"
 
 # loss options
