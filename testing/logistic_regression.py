@@ -172,6 +172,7 @@ if __name__ == "__main__":
     )
     simclr_model.load_state_dict(torch.load(model_fp, map_location=args.device.type))
     simclr_model = simclr_model.to(args.device)
+    simclr_model.eval()
     
 
     ## Logistic Regression
