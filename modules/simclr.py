@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torchvision
-from modules.resnet_hacks import modify_resnet_model
+from .resnet_hacks import modify_resnet_model
 
 from .identity import Identity
 
