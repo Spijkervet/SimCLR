@@ -18,7 +18,7 @@ URL = 'https://github.com/spijkervet/SimCLR'
 EMAIL = 'janne.spijkervet@gmail.com'
 AUTHOR = 'Janne Spijkervet'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
