@@ -5,11 +5,10 @@ from .gather import GatherLayer
 
 
 class NT_Xent(nn.Module):
-    def __init__(self, batch_size, temperature, device, world_size):
+    def __init__(self, batch_size, temperature, world_size):
         super(NT_Xent, self).__init__()
         self.batch_size = batch_size
         self.temperature = temperature
-        self.device = device
         self.world_size = world_size
 
         self.mask = self.mask_correlated_samples(batch_size, world_size)
@@ -42,9 +41,7 @@ class NT_Xent(nn.Module):
         sim_j_i = torch.diag(sim, -self.batch_size * self.world_size)
 
         # We have 2N samples, but with Distributed training every GPU gets N examples too, resulting in: 2xNxN
-        positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(
-            N, 1
-        )
+        positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(N, 1)
         negative_samples = sim[self.mask].reshape(N, -1)
 
         labels = torch.zeros(N).to(positive_samples.device).long()

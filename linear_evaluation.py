@@ -168,13 +168,10 @@ if __name__ == "__main__":
 
     # load pre-trained model from checkpoint
     simclr_model = SimCLR(args, encoder, n_features)
-    model_fp = os.path.join(
-        args.model_path, "checkpoint_{}.tar".format(args.epoch_num)
-    )
+    model_fp = os.path.join(args.model_path, "checkpoint_{}.tar".format(args.epoch_num))
     simclr_model.load_state_dict(torch.load(model_fp, map_location=args.device.type))
     simclr_model = simclr_model.to(args.device)
     simclr_model.eval()
-    
 
     ## Logistic Regression
     n_classes = 10  # CIFAR-10 / STL-10

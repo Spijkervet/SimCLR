@@ -110,7 +110,7 @@ def main(gpu, args):
 
     # optimizer / loss
     optimizer, scheduler = load_optimizer(args, model)
-    criterion = NT_Xent(args.batch_size, args.temperature, args.device, args.world_size)
+    criterion = NT_Xent(args.batch_size, args.temperature, args.world_size)
 
     # DDP / DP
     if args.dataparallel:

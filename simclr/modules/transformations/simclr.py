@@ -3,7 +3,7 @@ import torchvision
 
 class TransformsSimCLR:
     """
-    A stochastic data augmentation module that transforms any given data example randomly 
+    A stochastic data augmentation module that transforms any given data example randomly
     resulting in two correlated views of the same example,
     denoted x ̃i and x ̃j, which we consider as a positive pair.
     """

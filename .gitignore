@@ -6,3 +6,4 @@ save/
 build/
 dist/
 simclr.egg-info
+lightning_logs/

@@ -3,6 +3,7 @@ import torch
 import torchvision
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
+from pytorch_lightning import Trainer, LightningModule
 
 
 # SimCLR
@@ -14,8 +15,7 @@ from simclr.modules.sync_batchnorm import convert_model
 from utils import yaml_config_hook
 
 
-class ContrastiveLearning(pl.LightningModule):
-
+class ContrastiveLearning(LightningModule):
     def __init__(self, args):
         super().__init__()
 
@@ -23,21 +23,22 @@ class ContrastiveLearning(pl.LightningModule):
 
         # initialize ResNet
         self.encoder = get_resnet(self.hparams.resnet, pretrained=False)
-        self.n_features = encoder.fc.in_features  # get dimensions of fc layer
-
-        self.model = SimCLR(self.hparams, encoder, n_features)
-
+        self.n_features = self.encoder.fc.in_features  # get dimensions of fc layer
+        self.model = SimCLR(self.encoder, self.hparams.projection_dim, self.n_features)
+        self.criterion = NT_Xent(
+            self.hparams.batch_size, self.hparams.temperature, world_size=1
+        )
 
     def forward(self, x_i, x_j):
         h_i, h_j, z_i, z_j = self.model(x_i, x_j)
         loss = self.criterion(z_i, z_j)
         return loss
 
-
     def training_step(self, batch, batch_idx):
         # training_step defined the train loop. It is independent of forward
         (x_i, x_j), _ = batch
         loss = self.forward(x_i, x_j)
+        return loss
 
     def configure_criterion(self):
         criterion = NT_Xent(self.hparams.batch_size, self.hparams.temperature)
@@ -65,13 +66,16 @@ class ContrastiveLearning(pl.LightningModule):
         else:
             raise NotImplementedError
 
-        return optimizer, scheduler
-
+        if scheduler:
+            return {"optimizer": optimizer, "lr_scheduler": scheduler}
+        else:
+            return {"optimizer": optimizer}
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="SimCLR")
+
     config = yaml_config_hook("./config/config.yaml")
     for k, v in config.items():
         parser.add_argument(f"--{k}", default=v, type=type(v))
@@ -93,7 +97,16 @@ if __name__ == "__main__":
         )
     else:
         raise NotImplementedError
+    
+    if args.gpus == 1:
+        workers = args.workers
+    else:
+        workers = 0
+
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=workers)
 
     cl = ContrastiveLearning(args)
-    trainer = pl.Trainer()
-    trainer.fit(cl, DataLoader(train_dataset))
+    
+    trainer = Trainer.from_argparse_args(args)
+    trainer.sync_batchnorm=True
+    trainer.fit(cl, train_loader)

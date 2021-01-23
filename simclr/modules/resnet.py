@@ -1,5 +1,6 @@
 import torchvision
 
+
 def get_resnet(name, pretrained=False):
     resnets = {
         "resnet18": torchvision.models.resnet18(pretrained=pretrained),
