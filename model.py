@@ -1,6 +1,8 @@
 import os
 import torch
-from modules import SimCLR, LARS
+
+from simclr import SimCLR
+from simclr.modules import LARS
 
 
 def load_optimizer(args, model):

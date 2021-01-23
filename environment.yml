@@ -4,7 +4,4 @@ channels:
 dependencies:
   - pytorch
   - torchvision
-  - tensorboard
   - pyyaml
-  - pip:
-    - sacred

@@ -13,10 +13,13 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 # TensorBoard
 from torch.utils.tensorboard import SummaryWriter
 
+# SimCLR
+from simclr import SimCLR
+from simclr.modules import NT_Xent, get_resnet
+from simclr.modules.transformations import TransformsSimCLR
+from simclr.modules.sync_batchnorm import convert_model
+
 from model import load_optimizer, save_model
-from modules import SimCLR, NT_Xent, get_resnet
-from modules.transformations import TransformsSimCLR
-from modules.sync_batchnorm import convert_model
 from utils import yaml_config_hook
 
 
@@ -97,7 +100,7 @@ def main(gpu, args):
     n_features = encoder.fc.in_features  # get dimensions of fc layer
 
     # initialize model
-    model = SimCLR(args, encoder, n_features)
+    model = SimCLR(encoder, args.projection_dim, n_features)
     if args.reload:
         model_fp = os.path.join(
             args.model_path, "checkpoint_{}.tar".format(args.epoch_num)

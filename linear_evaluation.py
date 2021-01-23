@@ -5,10 +5,11 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 
-from utils import yaml_config_hook
+from simclr import SimCLR
+from simclr.modules import LogisticRegression, get_resnet
+from simclr.modules.transformations import TransformsSimCLR
 
-from modules import SimCLR, LogisticRegression, get_resnet
-from modules.transformations import TransformsSimCLR
+from utils import yaml_config_hook
 
 
 def inference(loader, simclr_model, device):

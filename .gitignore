@@ -3,3 +3,6 @@ runs/
 datasets/
 save/
 *.tar
+build/
+dist/
+simclr.egg-info

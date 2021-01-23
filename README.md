@@ -19,6 +19,7 @@ Open SimCLR results comparison on tensorboard.dev:
   </a>
 </p>
 
+
 ### Quickstart (fine-tune linear classifier)
 This downloads a pre-trained model and trains the linear classifier, which should receive an accuracy of ±`82.9%` on the STL-10 test set.
 ```
@@ -26,19 +27,38 @@ git clone https://github.com/spijkervet/SimCLR.git && cd SimCLR
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.2/checkpoint_100.tar
 sh setup.sh || python3 -m pip install -r requirements.txt || exit 1
 conda activate simclr
-python -m testing.logistic_regression --dataset=STL10 --model_path=. --epoch_num=100 --resnet resnet50
+python linear_evaluation.py --dataset=STL10 --model_path=. --epoch_num=100 --resnet resnet50
 ```
 
 #### CPU
 ```
 wget https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar -O checkpoint_100.tar
-python -m testing.logistic_regression --model_path=. --epoch_num=100 --resnet=resnet18 --logistic_batch_size=32
+python linear_evaluation.py --model_path=. --epoch_num=100 --resnet=resnet18 --logistic_batch_size=32
 ```
 
-### Quickstart (pre-train ResNet encoder using SimCLR)
+### `simclr` package
+SimCLR for PyTorch is now available as a Python package! Simply run and use it in your project:
 ```
-python main.py
+pip install simclr
 ```
+
+You can then simply import SimCLR:
+```
+from simclr import SimCLR
+
+encoder = ResNet(...)
+projection_dim = 64
+n_features = encoder.fc.in_features  # get dimensions of last fully-connected layer
+model = SimCLR(encoder, projection_dim, n_features)
+```
+
+### Training ResNet encoder:
+Simply run the following to pre-train a ResNet encoder using SimCLR on the CIFAR-10 dataset:
+```
+python main.py --dataset CIFAR10
+```
+
+### Distributed Training
 With distributed data parallel (DDP) training:
 ```
 CUDA_VISIBLE_DEVICES=0 python main.py --nodes 2 --nr 0
@@ -69,7 +89,7 @@ These are the top-1 accuracy of linear classifiers trained on the (frozen) repre
 | [ResNet18 (256, 100)](https://github.com/Spijkervet/SimCLR/releases/download/1.1/checkpoint_100.tar) | Adam | 0.765 |
 | [ResNet18 (256, 40)](https://github.com/Spijkervet/SimCLR/releases/download/1.0/checkpoint_40.tar) | Adam | 0.719 |
 
-`python -m testing.logistic_regression --model_path=. --epoch_num=100`
+`python linear_evaluation.py --model_path=. --epoch_num=100`
 
 #### LARS optimizer
 The LARS optimizer is implemented in `modules/lars.py`. It can be activated by adjusting the `config/config.yaml` optimizer setting to: `optimizer: "LARS"`. It is still experimental and has not been thoroughly tested.
@@ -113,12 +133,12 @@ To test a trained model, make sure to set the `model_path` variable in the `conf
 Set the `epoch_num` to the epoch number you want to load the checkpoints from (e.g. `40`).
 
 ```
-python -m testing.logistic_regression
+python linear_evaluation.py
 ```
 
 or in place:
 ```
-python -m testing.logistic_regression --model_path=./save --epoch_num=40
+python linear_evaluation.py --model_path=./save --epoch_num=40
 ```
 
 
