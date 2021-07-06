@@ -1,16 +1,8 @@
-"""
-LARS: Layer-wise Adaptive Rate Scaling
-
-Converted from TensorFlow to PyTorch
-https://github.com/google-research/simclr/blob/master/lars_optimizer.py
-"""
-
-import torch
 from torch.optim.optimizer import Optimizer, required
 import re
+import torch
 
 EETA_DEFAULT = 0.001
-
 
 class LARS(Optimizer):
     """
@@ -22,6 +14,7 @@ class LARS(Optimizer):
     def __init__(
         self,
         params,
+        param_names,
         lr=required,
         momentum=0.9,
         use_nesterov=False,
@@ -33,6 +26,8 @@ class LARS(Optimizer):
     ):
         """Constructs a LARSOptimizer.
         Args:
+        param_names: names of parameters of model obtained by 
+            [name for name, p in model.named_parameters() if p.requires_grad]
         lr: A `float` for learning rate.
         momentum: A `float` for momentum.
         use_nesterov: A 'Boolean' for whether to use nesterov momentum.
@@ -40,7 +35,7 @@ class LARS(Optimizer):
         exclude_from_weight_decay: A list of `string` for variable screening, if
             any of the string appears in a variable's name, the variable will be
             excluded for computing weight decay. For example, one could specify
-            the list like ['batch_normalization', 'bias'] to exclude BN and bias
+            the list like ['bn', 'bias'] to exclude BN and bias
             from weight decay.
         exclude_from_layer_adaptation: Similar to exclude_from_weight_decay, but
             for layer adaptation. If it is None, it will be defaulted the same as
@@ -67,6 +62,7 @@ class LARS(Optimizer):
         super(LARS, self).__init__(params, defaults)
         self.lr = lr
         self.momentum = momentum
+        self.param_names = param_names
         self.weight_decay = weight_decay
         self.use_nesterov = use_nesterov
         self.classic_momentum = classic_momentum
@@ -78,6 +74,8 @@ class LARS(Optimizer):
             self.exclude_from_layer_adaptation = exclude_from_layer_adaptation
         else:
             self.exclude_from_layer_adaptation = exclude_from_weight_decay
+
+        param_name_map = {'batch_normalization':'bn','bias':'bias'}
 
     def step(self, epoch=None, closure=None):
         loss = None
@@ -94,7 +92,7 @@ class LARS(Optimizer):
             eeta = group["eeta"]
             lr = group["lr"]
 
-            for p in group["params"]:
+            for param_name, p in zip(self.param_names,group["params"]):
                 if p.grad is None:
                     continue
 
@@ -104,27 +102,27 @@ class LARS(Optimizer):
                 param_state = self.state[p]
 
                 # TODO: get param names
-                # if self._use_weight_decay(param_name):
-                grad += self.weight_decay * param
+                if self._use_weight_decay(param_name):
+                    grad += self.weight_decay * param
 
                 if self.classic_momentum:
                     trust_ratio = 1.0
 
                     # TODO: get param names
-                    # if self._do_layer_adaptation(param_name):
-                    w_norm = torch.norm(param)
-                    g_norm = torch.norm(grad)
+                    if self._do_layer_adaptation(param_name):
+                        w_norm = torch.norm(param)
+                        g_norm = torch.norm(grad)
 
-                    device = g_norm.get_device()
-                    trust_ratio = torch.where(
-                        w_norm.ge(0),
-                        torch.where(
-                            g_norm.ge(0),
-                            (self.eeta * w_norm / g_norm),
+                        device = g_norm.get_device()
+                        trust_ratio = torch.where(
+                            w_norm.gt(0),
+                            torch.where(
+                                g_norm.gt(0),
+                                (self.eeta * w_norm / g_norm),
+                                torch.Tensor([1.0]).to(device),
+                            ),
                             torch.Tensor([1.0]).to(device),
-                        ),
-                        torch.Tensor([1.0]).to(device),
-                    ).item()
+                        ).item()
 
                     scaled_lr = lr * trust_ratio
                     if "momentum_buffer" not in param_state:
@@ -134,7 +132,7 @@ class LARS(Optimizer):
                     else:
                         next_v = param_state["momentum_buffer"]
 
-                    next_v.mul_(momentum).add_(scaled_lr, grad)
+                    next_v.mul_(momentum).add_(grad, alpha = scaled_lr)
                     if self.use_nesterov:
                         update = (self.momentum * next_v) + (scaled_lr * grad)
                     else:
@@ -142,7 +140,39 @@ class LARS(Optimizer):
 
                     p.data.add_(-update)
                 else:
-                    raise NotImplementedError
+                    trust_ratio = 1.0
+
+                    if "momentum_buffer" not in param_state:
+                        next_v = param_state["momentum_buffer"] = torch.zeros_like(
+                            p.data
+                        )
+                    else:
+                        next_v = param_state["momentum_buffer"]
+
+                    next_v.mul_(momentum).add_(grad)
+                    if self.use_nesterov:
+                        update = (self.momentum * next_v) + grad
+                    else:
+                        update = next_v
+
+                    if self._do_layer_adaptation(param_name):
+                        w_norm = torch.norm(param)
+                        g_norm = torch.norm(grad)
+
+                        device = g_norm.get_device()
+                        trust_ratio = torch.where(
+                            w_norm.gt(0),
+                            torch.where(
+                                g_norm.gt(0),
+                                (self.eeta * w_norm / g_norm),
+                                torch.Tensor([1.0]).to(device),
+                            ),
+                            torch.Tensor([1.0]).to(device),
+                        ).item()
+
+                    scaled_lr = lr * trust_ratio
+
+                    p.data.add_(-update, alpha = scaled_lr)
 
         return loss
 
@@ -152,7 +182,7 @@ class LARS(Optimizer):
             return False
         if self.exclude_from_weight_decay:
             for r in self.exclude_from_weight_decay:
-                if re.search(r, param_name) is not None:
+                if re.search(param_name_map[r], param_name) is not None:
                     return False
         return True
 
@@ -160,6 +190,6 @@ class LARS(Optimizer):
         """Whether to do layer-wise learning rate adaptation for `param_name`."""
         if self.exclude_from_layer_adaptation:
             for r in self.exclude_from_layer_adaptation:
-                if re.search(r, param_name) is not None:
+                if re.search(param_name_map[r], param_name) is not None:
                     return False
         return True
