@@ -16,6 +16,7 @@ def load_optimizer(args, model):
         learning_rate = 0.3 * args.batch_size / 256
         optimizer = LARS(
             model.parameters(),
+            [name for name,p in model.named_parameters() if p.requires_grad],
             lr=learning_rate,
             weight_decay=args.weight_decay,
             exclude_from_weight_decay=["batch_normalization", "bias"],
