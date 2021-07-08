@@ -26,7 +26,7 @@ class LARS(Optimizer):
     ):
         """Constructs a LARSOptimizer.
         Args:
-        param_names: names of parameters of model obtained by 
+        param_names: names of parameters of model obtained by
             [name for name, p in model.named_parameters() if p.requires_grad]
         lr: A `float` for learning rate.
         momentum: A `float` for momentum.
@@ -50,6 +50,7 @@ class LARS(Optimizer):
         self.epoch = 0
         defaults = dict(
             lr=lr,
+            param_names = param_names,
             momentum=momentum,
             use_nesterov=use_nesterov,
             weight_decay=weight_decay,
@@ -75,7 +76,7 @@ class LARS(Optimizer):
         else:
             self.exclude_from_layer_adaptation = exclude_from_weight_decay
 
-        param_name_map = {'batch_normalization':'bn','bias':'bias'}
+        self.param_name_map = {'batch_normalization':'bn','bias':'bias'}
 
     def step(self, epoch=None, closure=None):
         loss = None
@@ -91,8 +92,9 @@ class LARS(Optimizer):
             momentum = group["momentum"]
             eeta = group["eeta"]
             lr = group["lr"]
+            #param_names = group["param_names"]
 
-            for param_name, p in zip(self.param_names,group["params"]):
+            for p_name, p in zip(group["param_names"],group["params"]):
                 if p.grad is None:
                     continue
 
@@ -102,14 +104,16 @@ class LARS(Optimizer):
                 param_state = self.state[p]
 
                 # TODO: get param names
-                if self._use_weight_decay(param_name):
+                if self._use_weight_decay(p_name):
                     grad += self.weight_decay * param
+                else:
+                    print(p_name)
 
                 if self.classic_momentum:
                     trust_ratio = 1.0
 
                     # TODO: get param names
-                    if self._do_layer_adaptation(param_name):
+                    if self._do_layer_adaptation(p_name):
                         w_norm = torch.norm(param)
                         g_norm = torch.norm(grad)
 
@@ -143,9 +147,7 @@ class LARS(Optimizer):
                     trust_ratio = 1.0
 
                     if "momentum_buffer" not in param_state:
-                        next_v = param_state["momentum_buffer"] = torch.zeros_like(
-                            p.data
-                        )
+                        next_v = param_state["momentum_buffer"] = torch.zeros_like(p.data)
                     else:
                         next_v = param_state["momentum_buffer"]
 
@@ -182,7 +184,7 @@ class LARS(Optimizer):
             return False
         if self.exclude_from_weight_decay:
             for r in self.exclude_from_weight_decay:
-                if re.search(param_name_map[r], param_name) is not None:
+                if re.search(self.param_name_map[r], param_name) is not None:
                     return False
         return True
 
@@ -190,6 +192,6 @@ class LARS(Optimizer):
         """Whether to do layer-wise learning rate adaptation for `param_name`."""
         if self.exclude_from_layer_adaptation:
             for r in self.exclude_from_layer_adaptation:
-                if re.search(param_name_map[r], param_name) is not None:
+                if re.search(self.param_name_map[r], param_name) is not None:
                     return False
         return True
