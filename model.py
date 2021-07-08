@@ -13,10 +13,15 @@ def load_optimizer(args, model):
     elif args.optimizer == "LARS":
         # optimized using LARS with linear learning rate scaling
         # (i.e. LearningRate = 0.3 × BatchSize/256) and weight decay of 10−6.
+        params = []
+        param_names = []
+        for n,p in model.named_parameters():
+            params.append(p)
+            param_names.append(n)
+        parameters = [{'params':params,'param_names':param_names}]
         learning_rate = 0.3 * args.batch_size / 256
         optimizer = LARS(
-            model.parameters(),
-            [name for name,p in model.named_parameters() if p.requires_grad],
+            parameters,
             lr=learning_rate,
             weight_decay=args.weight_decay,
             exclude_from_weight_decay=["batch_normalization", "bias"],
