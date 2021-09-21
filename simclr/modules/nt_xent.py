@@ -20,8 +20,8 @@ class NT_Xent(nn.Module):
         mask = torch.ones((N, N), dtype=bool)
         mask = mask.fill_diagonal_(0)
         for i in range(batch_size * world_size):
-            mask[i, batch_size + i] = 0
-            mask[batch_size + i, i] = 0
+            mask[i, batch_size * world_size + i] = 0
+            mask[batch_size * world_size + i, i] = 0
         return mask
 
     def forward(self, z_i, z_j):
