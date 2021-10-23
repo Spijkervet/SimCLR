@@ -3,7 +3,7 @@ nodes: 1
 gpus: 1 # I recommend always assigning 1 GPU to 1 node
 nr: 0 # machine nr. in node (0 -- nodes - 1)
 dataparallel: 0 # Use DataParallel instead of DistributedDataParallel
-workers: 8
+workers: 4 #8 didin't work
 dataset_dir: "./datasets"
 
 # train options
