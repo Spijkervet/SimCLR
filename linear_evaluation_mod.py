@@ -11,7 +11,7 @@ from simclr.modules.transformations import TransformsSimCLR
 
 from utils import yaml_config_hook
 
-from PULoss import PULoss
+from pu.PULoss import PULoss
 
 def inference(loader, simclr_model, device):
     feature_vector = []
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
     criterion = torch.nn.CrossEntropyLoss()
 
-    # criterion = PULoss
+    # criterion = PULoss()
 
     print("### Creating features from pre-trained context model ###")
     (train_X, train_y, test_X, test_y) = get_features(
