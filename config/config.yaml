@@ -3,14 +3,14 @@ nodes: 1
 gpus: 1 # I recommend always assigning 1 GPU to 1 node
 nr: 0 # machine nr. in node (0 -- nodes - 1)
 dataparallel: 0 # Use DataParallel instead of DistributedDataParallel
-workers: 4 #8 didin't work
+workers: 4 #8 didn't work
 dataset_dir: "./datasets"
 
 # train options
 seed: 42 # sacred handles automatic seeding when passed in the config
 batch_size: 256
 image_size: 224
-workers: 16
+workers: 4 # here were 16
 start_epoch: 0
 epochs: 200
 dataset: "CIFAR10" # STL10
