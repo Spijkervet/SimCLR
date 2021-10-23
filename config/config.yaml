@@ -1,10 +1,21 @@
+# distributed training
+nodes: 1
+gpus: 1 # I recommend always assigning 1 GPU to 1 node
+nr: 0 # machine nr. in node (0 -- nodes - 1)
+dataparallel: 0 # Use DataParallel instead of DistributedDataParallel
+workers: 8
+dataset_dir: "./datasets"
+
 # train options
 seed: 42 # sacred handles automatic seeding when passed in the config
 batch_size: 256
+image_size: 224
 workers: 16
 start_epoch: 0
 epochs: 200
 dataset: "CIFAR10" # STL10
+
+# pretrain: True 
 
 # model options
 resnet: "resnet50"
@@ -15,9 +26,15 @@ projection_dim: 128 # "[...] to project the representation to a 128-dimensional 
 optimizer: "Adam" # or LARS (experimental)
 temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch sizes
 
+weight_decay: 1.0e-6 # "optimized using LARS [...] and weight decay of 10−6"
+
 # reload options
 model_path: "logs/0" # set to the directory containing `checkpoint_##.tar` 
-model_num: 40 # set to checkpoint number
+# model_path: "save" # set to the directory containing `checkpoint_##.tar` 
+model_num: 200 # set to checkpoint number
+epoch_num: 100 # set to checkpoint number
+reload: False
+
 
 # mixed-precision training
 fp16: False 
