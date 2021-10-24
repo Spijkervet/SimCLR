@@ -32,7 +32,7 @@ weight_decay: 1.0e-6 # "optimized using LARS [...] and weight decay of 10−6"
 model_path: "logs/0" # set to the directory containing `checkpoint_##.tar` 
 # model_path: "save" # set to the directory containing `checkpoint_##.tar` 
 model_num: 200 # set to checkpoint number
-epoch_num: 100 # set to checkpoint number
+epoch_num: 200 # set to checkpoint number
 reload: False
 
 
