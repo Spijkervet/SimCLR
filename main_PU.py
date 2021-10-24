@@ -92,7 +92,7 @@ def main(gpu, args):
 
     if args.nodes > 1:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
-            train_dataset, num_replicas=args.world_size, rank=rank, shuffle=True
+            train_datasubset_pu, num_replicas=args.world_size, rank=rank, shuffle=True #train_dataset,
         )
     else:
         train_sampler = None
