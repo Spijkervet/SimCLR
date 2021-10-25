@@ -54,7 +54,7 @@ def save_classif_model(args, model):
 def weights_onnpu(args, weight):
     out = os.path.join(args.model_path, "weights_onnpu/weights.pkl")
 
-    weight = float(weight.detach().numpy())
+    weight = float(weight.detach().cpu().numpy())
     if not os.path.exists(os.path.join(args.model_path, "weights_onnpu/")):
         os.mkdir(os.path.join(args.model_path,"classif/"))
     if args.current_epoch==0:
