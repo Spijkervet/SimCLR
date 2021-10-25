@@ -44,8 +44,8 @@ def save_model(args, model, optimizer):
 
 def save_classif_model(args, model):
     out = os.path.join(args.model_path, "classif/classif_checkpoint_{}.tar".format(args.current_epoch))
-    if not os.path.exists("classif/"):
-        os.mkdir("classif/")
+    if not os.path.exists(os.path.join(args.model_path,"classif/")):
+        os.mkdir(os.path.join(args.model_path,"classif/"))
     if isinstance(model, torch.nn.DataParallel):
         torch.save(model.module.state_dict(), out)
     else:
@@ -55,8 +55,8 @@ def weights_onnpu(args, weight):
     out = os.path.join(args.model_path, "weights_onnpu/weights.pkl")
 
     weight = float(weight.detach().numpy())
-    if not os.path.exists("weights_onnpu/"):
-        os.mkdir("classif/")
+    if not os.path.exists(os.path.join(args.model_path, "weights_onnpu/")):
+        os.mkdir(os.path.join(args.model_path,"classif/"))
     if args.current_epoch==0:
         sweights = pd.Series({args.current_epoch: weight})
         sweights.to_pickle(out)
