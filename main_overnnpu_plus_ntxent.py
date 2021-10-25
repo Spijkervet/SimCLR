@@ -165,7 +165,7 @@ def main(gpu, args):
             writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
             writer.add_scalar("Misc/learning_rate", lr, epoch)
             # added
-            writer.add_scalar("Weights/weight_onnpu", onnpu_weight.detach().numpy(), epoch)
+            writer.add_scalar("Weights/weight_onnpu", onnpu_weight.detach().cpu().numpy(), epoch)
             print(
                 f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}\t lr: {round(lr, 5)}"
             )
