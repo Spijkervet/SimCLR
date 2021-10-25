@@ -107,5 +107,3 @@ class PU_plus_NTXent(nn.Module):
 
         loss = self.weight_onnpu*onnpu_l + (1-self.weight_onnpu)*nt_xent_l
         return loss, self.linear_classif, self.weight_onnpu
-
-# excel, 

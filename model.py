@@ -6,17 +6,22 @@ from simclr import SimCLR
 from simclr.modules import LARS
 
 
-def load_optimizer(args, model):
+def load_optimizer(args, model, add_params_model=None):
 
     scheduler = None
+    if add_params_model is None:
+        params = model.parameters()
+    else:
+        params = list(model.parameters()) + list(add_params_model.parameters())
+
     if args.optimizer == "Adam":
-        optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)  # TODO: LARS
+        optimizer = torch.optim.Adam(params, lr=3e-4)  # TODO: LARS
     elif args.optimizer == "LARS":
         # optimized using LARS with linear learning rate scaling
         # (i.e. LearningRate = 0.3 × BatchSize/256) and weight decay of 10−6.
         learning_rate = 0.3 * args.batch_size / 256
         optimizer = LARS(
-            model.parameters(),
+            params,
             lr=learning_rate,
             weight_decay=args.weight_decay,
             exclude_from_weight_decay=["batch_normalization", "bias"],

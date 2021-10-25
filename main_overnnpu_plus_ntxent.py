@@ -23,12 +23,10 @@ from model import load_optimizer, save_model, save_classif_model, weights_onnpu
 from utils import yaml_config_hook
 
 
-def train(args, train_loader, model, criterion, optimizer,optimizer_loss, writer):
+def train(args, train_loader, model, criterion, optimizer, writer):
     loss_epoch = 0
     for step, ((x_i, x_j), y) in enumerate(train_loader):
         optimizer.zero_grad()
-        # new
-        optimizer_loss.zero_grad()
         x_i = x_i.cuda(non_blocking=True)
         x_j = x_j.cuda(non_blocking=True)
 
@@ -41,7 +39,6 @@ def train(args, train_loader, model, criterion, optimizer,optimizer_loss, writer
         loss.backward()
 
         optimizer.step()
-        optimizer_loss.step()
 
         if dist.is_available() and dist.is_initialized():
             loss = loss.data.clone()
@@ -126,14 +123,10 @@ def main(gpu, args):
         model.load_state_dict(torch.load(model_fp, map_location=args.device.type))
     model = model.to(args.device)
 
-    # optimizer / loss
-    optimizer, scheduler = load_optimizer(args, model)
-    
-
     criterion = PU_plus_NTXent(args.batch_size, args.temperature, args.world_size, args.prior) #NT_Xent(args.batch_size, args.temperature, args.world_size)
-    #optimizer for loss
-    optimizer_loss = torch.optim.Adam(criterion.parameters(), lr=3e-4)
-
+    # optimizer / loss
+    optimizer, scheduler = load_optimizer(args, model, criterion)
+    
     # DDP / DP
     if args.dataparallel:
         model = convert_model(model)
@@ -157,7 +150,7 @@ def main(gpu, args):
         
         lr = optimizer.param_groups[0]["lr"]
         #added
-        loss_epoch, classif_weights, onnpu_weight = train(args, train_loader, model, criterion, optimizer, optimizer_loss, writer)
+        loss_epoch, classif_weights, onnpu_weight = train(args, train_loader, model, criterion, optimizer, writer)
 
         if args.nr == 0 and scheduler:
             scheduler.step()
