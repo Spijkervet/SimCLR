@@ -13,7 +13,7 @@ class PU_plus_NTXent(nn.Module):
 
     def __init__(self, batch_size, temperature, world_size, prior, prior_prime=0.5,
                  loss=(lambda x: torch.sigmoid(-x)), gamma=1, beta=0, nnPU=True, latent_size=2048):
-        super(PU_NTXent,self).__init__()
+        super().__init__()
         self.batch_size = batch_size
         self.temperature = temperature
         self.world_size = world_size
