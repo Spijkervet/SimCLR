@@ -19,7 +19,7 @@ from simclr.modules import NT_Xent, get_resnet, PU_plus_NTXent
 from simclr.modules.transformations import TransformsSimCLR
 from simclr.modules.sync_batchnorm import convert_model
 
-from model import load_optimizer, save_model
+from model import load_optimizer, save_model, save_classif_model, weights_onnpu
 from utils import yaml_config_hook
 
 
@@ -30,10 +30,12 @@ def train(args, train_loader, model, criterion, optimizer, writer):
         x_i = x_i.cuda(non_blocking=True)
         x_j = x_j.cuda(non_blocking=True)
 
+        y = y.cuda(non_blocking=True)
+
         # positive pair, with encoding
         h_i, h_j, z_i, z_j = model(x_i, x_j)
 
-        loss = criterion(h_i, h_j, z_i, z_j, y)
+        loss, classif_weights, onnpu_weight = criterion(h_i, h_j, z_i, z_j, y)
         loss.backward()
 
         optimizer.step()
@@ -50,7 +52,7 @@ def train(args, train_loader, model, criterion, optimizer, writer):
             args.global_step += 1
 
         loss_epoch += loss.item()
-    return loss_epoch
+    return loss_epoch, classif_weights, onnpu_weight
 
 
 def main(gpu, args):
@@ -147,17 +149,23 @@ def main(gpu, args):
             train_sampler.set_epoch(epoch)
         
         lr = optimizer.param_groups[0]["lr"]
-        loss_epoch = train(args, train_loader, model, criterion, optimizer, writer)
+        #added
+        loss_epoch, classif_weights, onnpu_weight = train(args, train_loader, model, criterion, optimizer, writer)
 
         if args.nr == 0 and scheduler:
             scheduler.step()
 
         if args.nr == 0 and epoch % 10 == 0:
             save_model(args, model, optimizer)
+            # added
+            save_classif_model(args, classif_weights)
+            weights_onnpu(args, onnpu_weight)
 
         if args.nr == 0:
             writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
             writer.add_scalar("Misc/learning_rate", lr, epoch)
+            # added
+            writer.add_scalar("Weights/weight_onnpu", onnpu_weight.detach().numpy(), epoch)
             print(
                 f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}\t lr: {round(lr, 5)}"
             )

@@ -1,5 +1,6 @@
 import os
 import torch
+import pandas as pd
 
 from simclr import SimCLR
 from simclr.modules import LARS
@@ -40,3 +41,25 @@ def save_model(args, model, optimizer):
         torch.save(model.module.state_dict(), out)
     else:
         torch.save(model.state_dict(), out)
+
+def save_classif_model(args, model):
+    out = os.path.join(args.model_path, "classif/classif_checkpoint_{}.tar".format(args.current_epoch))
+
+    if isinstance(model, torch.nn.DataParallel):
+        torch.save(model.module.state_dict(), out)
+    else:
+        torch.save(model.state_dict(), out)
+
+def weights_onnpu(args, weight):
+    out = os.path.join(args.model_path, "weights_onnpu/weights.pkl")
+
+    weight = float(weight.detach().numpy())
+    if args.current_epoch==0:
+        sweights = pd.Series({args.current_epoch: weight})
+        sweights.to_pickle(out)
+    else:
+        sweights = pd.read_pickle(out)
+        sweights = sweights.append(pd.Series({args.current_epoch: weight}))
+        sweights.to_pickle(out)
+
+

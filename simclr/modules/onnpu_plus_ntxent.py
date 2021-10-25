@@ -21,8 +21,8 @@ class PU_plus_NTXent(nn.Module):
         self.mask = self.mask_correlated_samples(batch_size, world_size)
         self.criterion = nn.CrossEntropyLoss(reduction="sum")
         self.similarity_f = nn.CosineSimilarity(dim=2)
-        if not 0 < prior < 1:
-            raise NotImplementedError("The class prior should be in (0, 1)")
+        if not 0 <= prior < 1:
+            raise NotImplementedError("The class prior should be in [0, 1)")
         self.prior = prior
         self.prior_prime = prior_prime
         self.gamma = gamma
@@ -34,9 +34,9 @@ class PU_plus_NTXent(nn.Module):
         self.min_count = torch.tensor(1.)
 
         # trainable weight parameter for weighting sum over OversamplednnPU Loss and NTXent Loss
-        self.weight_onnpu = nn.Parameter(torch.tensor(0.5))
+        self.weight_onnpu = nn.Parameter(torch.tensor(0.5)).cuda()
         # trainable linear Layer for mapping latent variables to 1d classification output for nnPU loss
-        self.linear_classif = nn.Linear(latent_size, 1)
+        self.linear_classif = nn.Linear(latent_size, 1).cuda()
 
     def mask_correlated_samples(self, batch_size, world_size):
         N = 2 * batch_size * world_size
@@ -106,4 +106,6 @@ class PU_plus_NTXent(nn.Module):
         nt_xent_l = self.nt_xent_loss(z_i, z_j)
 
         loss = self.weight_onnpu*onnpu_l + (1-self.weight_onnpu)*nt_xent_l
-        return loss
+        return loss, self.linear_classif, self.weight_onnpu
+
+# excel, 

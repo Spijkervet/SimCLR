@@ -5,3 +5,4 @@ dependencies:
   - pytorch
   - torchvision
   - pyyaml
+  - pandas
