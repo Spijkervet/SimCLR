@@ -48,5 +48,5 @@ logistic_epochs: 500
 prior: 0.0
 
 # option for full or imbalanced Pu Subset
-imbPU_data: "all", #options: "all", "balancedPU", "imbalanced", "imbalancedPU"
+imbPU_data: "all" #options: "all", "balancedPU", "imbalanced", "imbalancedPU"
 
