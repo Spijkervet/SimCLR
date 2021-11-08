@@ -92,7 +92,7 @@ def main(gpu, args):
                 idxs.sort()
                 idxtargets_up.extend(idxtargets_up_cls)
                 idxtargets_up.sort()
-                idxtargets_up = torch.tensor(idxtargets_up)
+            idxtargets_up = torch.tensor(idxtargets_up)
             train_dataset.targets[idxtargets_up] = 0
             train_datasubset_pu = torch.utils.data.Subset(train_dataset, idxs) 
         elif args.imbPU_data == "all":
