@@ -34,7 +34,7 @@ class PU_plus_NTXent(nn.Module):
         self.min_count = torch.tensor(1.)
 
         # trainable weight parameter for weighting sum over OversamplednnPU Loss and NTXent Loss
-        self.weight_onnpu = nn.Parameter(torch.tensor(0.95)).cuda()
+        self.weight_onnpu = torch.tensor(0.95).cuda()
         # trainable linear Layer for mapping latent variables to 1d classification output for nnPU loss
         self.linear_classif = nn.Linear(latent_size, 1).cuda()
 
