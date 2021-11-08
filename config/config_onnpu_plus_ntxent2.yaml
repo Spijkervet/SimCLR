@@ -45,7 +45,7 @@ logistic_epochs: 500
 
 ############################# new added
 # new lossoptions for new Loss!!!
-prior: 0.0
+prior: 0.074
 
 # option for full or imbalanced Pu Subset
 imbPU_data: "imbalanced" #options: "all", "balancedPU", "imbalanced", "imbalancedPU"

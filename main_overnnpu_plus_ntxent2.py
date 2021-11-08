@@ -82,12 +82,18 @@ def main(gpu, args):
         # just take 750 instead of 5000 of the 4 vehicle (positive) classes --> P:U ratio 3k : 30k
         if args.imbPU_data == "imbalanced":
             idxs = []
+            idxtargets_up = []
             for cls in range(10):
                 idxs_cls = [i for i in range(len(train_dataset.targets)) if train_dataset.targets[i]==cls]
                 if cls in [0, 1, 8, 9]:
                     idxs_cls = idxs_cls[:750]
+                    idxtargets_up_cls = idxs_cls[:int((1-0.2)*len(idxs_cls))] # change here 0.2 for any other prop of labeled positive / all positives
                 idxs.extend(idxs_cls)
                 idxs.sort()
+                idxtargets_up.extend(idxtargets_up_cls)
+                idxtargets_up.sort()
+                idxtargets_up = torch.tensor(idxtargets_up)
+            train_dataset.targets[idxtargets_up] = 0
             train_datasubset_pu = torch.utils.data.Subset(train_dataset, idxs) 
         elif args.imbPU_data == "all":
             train_datasubset_pu = train_dataset
@@ -159,13 +165,13 @@ def main(gpu, args):
             save_model(args, model, optimizer)
             # added
             save_classif_model(args, classif_weights)
-            weights_onnpu(args, onnpu_weight)
+            # weights_onnpu(args, onnpu_weight)
 
         if args.nr == 0:
             writer.add_scalar("Loss/train", loss_epoch / len(train_loader), epoch)
             writer.add_scalar("Misc/learning_rate", lr, epoch)
             # added
-            writer.add_scalar("Weights/weight_onnpu", onnpu_weight.detach().cpu().numpy(), epoch)
+            # writer.add_scalar("Weights/weight_onnpu", onnpu_weight.detach().cpu().numpy(), epoch)
             print(
                 f"Epoch [{epoch}/{args.epochs}]\t Loss: {loss_epoch / len(train_loader)}\t lr: {round(lr, 5)}"
             )
@@ -173,6 +179,8 @@ def main(gpu, args):
 
     ## end training
     save_model(args, model, optimizer)
+    # added
+    save_classif_model(args, classif_weights)
 
 
 if __name__ == "__main__":
