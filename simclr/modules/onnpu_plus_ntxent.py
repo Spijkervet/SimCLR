@@ -102,7 +102,8 @@ class PU_plus_NTXent(nn.Module):
         return loss
 
     def forward(self, h_i, h_j, z_i, z_j, target, prior=None, prior_prime=None):
-        onnpu_l = 0.5*(self.onnpu_loss(self.linear_classif(h_i), target) + self.onnpu_loss(self.linear_classif(h_j), target))
+        # onnpu_l = 0.5*(self.onnpu_loss(self.linear_classif(h_i), target) + self.onnpu_loss(self.linear_classif(h_j), target))
+        onnpu_l = self.onnpu_loss(torch.vstack((self.linear_classif(h_i), self.linear_classif(h_j))), torch.hstack((target, target)))
         nt_xent_l = self.nt_xent_loss(z_i, z_j)
 
         loss = self.weight_onnpu*onnpu_l + (1-self.weight_onnpu)*nt_xent_l #0.8, 0.95
