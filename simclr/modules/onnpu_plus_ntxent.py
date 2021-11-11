@@ -8,6 +8,19 @@ from .gather import GatherLayer
 # import torch.nn as nn
 # import torch.distributed as dist
 # from .gather import GatherLayer
+class PU_classif_model(nn.Module):
+    def __init__(self, input_size, hidden_size):
+        super().__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.Linear1 = nn.Linear(input_size, hidden_size)
+        self.ReLu = nn.LeakyReLU(0.01)
+        self.Linear2 = nn.Linear(hidden_size, 1)
+
+    def forward(self, x):
+        return self.Linear2(self.ReLu(self.Linear1(x)))
+
+
 class PU_plus_NTXent(nn.Module):
     """wrapper of loss function for PU learning"""
 
@@ -36,9 +49,7 @@ class PU_plus_NTXent(nn.Module):
         # trainable weight parameter for weighting sum over OversamplednnPU Loss and NTXent Loss
         self.weight_onnpu = torch.tensor(0.2).cuda()
         # trainable linear Layer for mapping latent variables to 1d classification output for nnPU loss
-        self.Linear1 = nn.Linear(latent_size, 512).cuda()
-        self.ReLu = nn.LeakyReLU(0.01)
-        self.Linear2 = nn.Linear(512, 1).cuda()
+        self.ClassifModel = PU_classif_model(latent_size, 512)
 
     def mask_correlated_samples(self, batch_size, world_size):
         N = 2 * batch_size * world_size
@@ -105,10 +116,10 @@ class PU_plus_NTXent(nn.Module):
 
     def forward(self, h_i, h_j, z_i, z_j, target, prior=None, prior_prime=None):
         # onnpu_l = 0.5*(self.onnpu_loss(self.linear_classif(h_i), target) + self.onnpu_loss(self.linear_classif(h_j), target))
-        pred_hi = self.Linear2(self.ReLu(self.Linear1(h_i)))
-        pred_hj = self.Linear2(self.ReLu(self.Linear1(h_j)))
+        pred_hi = self.ClassifModel(h_i)
+        pred_hj = self.ClassifModel(h_j)
         onnpu_l = self.onnpu_loss(torch.vstack((pred_hi, pred_hj)), torch.hstack((target, target)))
         nt_xent_l = self.nt_xent_loss(z_i, z_j)
 
         loss = self.weight_onnpu*onnpu_l + nt_xent_l #0.8, 0.95
-        return loss, self.linear_classif, self.weight_onnpu
+        return loss, self.ClassifModel, self.weight_onnpu
