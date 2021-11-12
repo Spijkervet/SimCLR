@@ -47,7 +47,7 @@ class PU_plus_NTXent(nn.Module):
         self.min_count = torch.tensor(1.)
 
         # trainable weight parameter for weighting sum over OversamplednnPU Loss and NTXent Loss
-        self.weight_onnpu = torch.tensor(0.1).cuda()
+        self.weight_onnpu = torch.tensor(1.0).cuda()
         # trainable linear Layer for mapping latent variables to 1d classification output for nnPU loss
         self.ClassifModel = PU_classif_model(latent_size, 512).cuda()
 
@@ -62,6 +62,7 @@ class PU_plus_NTXent(nn.Module):
     
     def onnpu_loss(self, inp, target, prior=None, prior_prime=None):
         # assert(inp.shape == target.shape)
+        N = len(target)
         if prior is None:
             prior=self.prior
         if prior_prime is None:
@@ -83,9 +84,9 @@ class PU_plus_NTXent(nn.Module):
         negative_risk =  (1-prior_prime)/(n_unlabeled*(1-prior)) * torch.sum(y_unlabeled) - ((1-prior_prime)*prior/(n_positive*(1-prior))) *torch.sum(y_positive_inv)
 
         if negative_risk < -self.beta and self.nnPU:
-            return -self.gamma * negative_risk 
+            return (-self.gamma * negative_risk) / N
         else:
-            return positive_risk + negative_risk
+            return (positive_risk + negative_risk) / N
 
 
     def nt_xent_loss(self, z_i, z_j):
