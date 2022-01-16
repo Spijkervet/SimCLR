@@ -7,7 +7,7 @@ class MedianTripletHead(nn.Module):
         super(MedianTripletHead, self).__init__()
         # self.predictor = builder.build_neck(predictor)
         # self.size_average = size_average
-        self.ranking_loss = nn.MarginRankingLoss(margin=100.)
+        self.ranking_loss = nn.MarginRankingLoss(margin=3.1) # actually, biggest margin possible should be 1+2*gamma
         self.gamma = gamma
 
     # def init_weights(self, init_linear='normal'):
