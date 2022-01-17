@@ -72,7 +72,7 @@ class SmoothTripletHead(nn.Module):
         dist_ap, dist_an = [], []
         for i in range(n):
             dist_ap.append(dist[i][mask[i]].max().unsqueeze(0).repeat(k))
-            down_k = torch.topk(dist[i][mask[i]==0], k, dim=-1, largest=False)
+            down_k = torch.topk(dist[i][mask[i]==0], self.k, dim=-1, largest=False)
             down_k = down_k[0] # [-1].unsqueeze(0)
             dist_an.append(down_k)
 
