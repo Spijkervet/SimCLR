@@ -25,7 +25,7 @@ class MedianTripletHead(nn.Module):
         pred_norm = nn.functional.normalize(pred, dim=1)
         target_norm = nn.functional.normalize(target, dim=1)
         n = input.size(0)
-        dist = -2. * torch.matmul(pred_norm, target_norm.t()) 
+        dist = -1. * torch.matmul(pred_norm, target_norm.t()) # -2. *
         idx = torch.arange(n)
         mask = idx.expand(n, n).eq(idx.expand(n, n).t())
         dist_ap, dist_an = [], []
@@ -43,7 +43,7 @@ class MedianTripletHead(nn.Module):
 
 class SmoothTripletHead(nn.Module):
     def __init__(self,# predictor, size_average=True,
-                 k, gamma=2):
+                 k, gamma=1):
         super(SmoothTripletHead, self).__init__()
         # self.predictor = builder.build_neck(predictor)
         # self.size_average = size_average
@@ -66,7 +66,7 @@ class SmoothTripletHead(nn.Module):
         pred_norm = nn.functional.normalize(pred, dim=1)
         target_norm = nn.functional.normalize(target, dim=1)
         n = input.size(0)
-        dist = -2. * torch.matmul(pred_norm, target_norm.t()) 
+        dist = -1. * torch.matmul(pred_norm, target_norm.t()) # -2.*
         idx = torch.arange(n)
         mask = idx.expand(n, n).eq(idx.expand(n, n).t())
         dist_ap, dist_an = [], []
