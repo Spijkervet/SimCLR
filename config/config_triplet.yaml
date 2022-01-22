@@ -12,7 +12,7 @@ batch_size: 128
 image_size: 224
 workers: 4 # here were 16
 start_epoch: 0
-epochs: 30
+epochs: 200
 dataset: "CIFAR10" # STL10
 
 # pretrain: True 
@@ -31,8 +31,8 @@ weight_decay: 1.0e-6 # "optimized using LARS [...] and weight decay of 10−6"
 # reload options
 model_path: "logs/all/noPU/triplet_median" # set to the directory containing `checkpoint_##.tar` 
 # model_path: "save" # set to the directory containing `checkpoint_##.tar` 
-model_num: 30 # set to checkpoint number
-epoch_num: 30 # set to checkpoint number
+model_num: 200 # set to checkpoint number
+epoch_num: 200 # set to checkpoint number
 reload: False
 
 # mixed-precision training
