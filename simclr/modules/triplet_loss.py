@@ -47,7 +47,7 @@ class SmoothTripletHead(nn.Module):
         super(SmoothTripletHead, self).__init__()
         # self.predictor = builder.build_neck(predictor)
         # self.size_average = size_average
-        self.ranking_loss = nn.MarginRankingLoss(margin= 2.) # actually, biggest margin possible should be 1+2*gamma # changed
+        self.ranking_loss = nn.MarginRankingLoss(margin= 2.) # actually, biggest margin possible should be 1+gamma # changed
         self.gamma = gamma
         self.k = k
 
