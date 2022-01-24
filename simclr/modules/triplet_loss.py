@@ -149,7 +149,7 @@ class TripletNNPULoss(nn.Module):
             else:
                 loss_n = positive_risk + negative_risk
 
-            losses.append(loss_n)
-        loss = torch.tensor(losses).mean()
+            losses.append(loss_n.unsqueeze(dim=0))
+        loss = torch.cat(losses).mean()
 
         return loss # dict(loss=loss_triplet)
