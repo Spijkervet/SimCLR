@@ -15,11 +15,12 @@ from torch.utils.tensorboard import SummaryWriter
 
 # SimCLR
 from simclr import SimCLR
-from simclr.modules import NT_Xent, get_resnet, MedianTripletHead, SmoothTripletHead
+from simclr.modules import NT_Xent, get_resnet, MedianTripletHead, SmoothTripletHead, TripletNNPULoss
 from simclr.modules.transformations import TransformsSimCLR
 from simclr.modules.sync_batchnorm import convert_model
 
 from model import load_optimizer, save_model
+from simclr.modules.triplet_loss import TripletNNPULoss
 from utils import yaml_config_hook
 
 
@@ -130,7 +131,7 @@ def main(gpu, args):
 
     # optimizer / loss
     optimizer, scheduler = load_optimizer(args, model)
-    criterion = SmoothTripletHead(k=args.batch_size-1) #MedianTripletHead() #NT_Xent(args.batch_size, args.temperature, args.world_size)
+    criterion = TripletNNPULoss(prior=0.1, k = args.batch_size//2, C=-1) # SmoothTripletHead(k=args.batch_size-1) #MedianTripletHead() #NT_Xent(args.batch_size, args.temperature, args.world_size)
 
     # DDP / DP
     if args.dataparallel:
@@ -177,7 +178,7 @@ def main(gpu, args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="SimCLR")
-    config = yaml_config_hook("./config/config_triplet.yaml")
+    config = yaml_config_hook("./config/config_tripnnpu.yaml")
     for k, v in config.items():
         parser.add_argument(f"--{k}", default=v, type=type(v))
 

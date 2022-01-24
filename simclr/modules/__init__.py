@@ -4,4 +4,4 @@ from .logistic_regression import LogisticRegression
 from .lars import LARS
 from .resnet import get_resnet
 from .gather import GatherLayer
-from .triplet_loss import MedianTripletHead, SmoothTripletHead
+from .triplet_loss import MedianTripletHead, SmoothTripletHead, TripletNNPULoss
