@@ -131,7 +131,7 @@ def main(gpu, args):
 
     # optimizer / loss
     optimizer, scheduler = load_optimizer(args, model)
-    criterion = TripletNNPULoss(prior=0.1, k = args.batch_size//2, C=-1) # SmoothTripletHead(k=args.batch_size-1) #MedianTripletHead() #NT_Xent(args.batch_size, args.temperature, args.world_size)
+    criterion = TripletNNPULoss(prior=0.1, k = args.batch_size//2) # SmoothTripletHead(k=args.batch_size-1) #MedianTripletHead() #NT_Xent(args.batch_size, args.temperature, args.world_size)
 
     # DDP / DP
     if args.dataparallel:
