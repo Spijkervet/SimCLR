@@ -111,7 +111,7 @@ def test(args, loader, simclr_model, model, criterion, optimizer):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SimCLR")
-    config = yaml_config_hook("./config/config_triplet.yaml")
+    config = yaml_config_hook("./config/config_tripnnpu.yaml")
     for k, v in config.items():
         parser.add_argument(f"--{k}", default=v, type=type(v))
 
