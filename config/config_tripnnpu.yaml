@@ -12,7 +12,7 @@ batch_size: 128
 image_size: 224
 workers: 4 # here were 16
 start_epoch: 0
-epochs: 200
+epochs: 50
 dataset: "CIFAR10" # STL10
 
 # pretrain: True 
@@ -29,10 +29,10 @@ temperature: 0.5 # see appendix B.7.: Optimal temperature under different batch 
 weight_decay: 1.0e-6 # "optimized using LARS [...] and weight decay of 10−6"
 
 # reload options
-model_path: "logs/all/noPU/tripnnpu" # set to the directory containing `checkpoint_##.tar` 
+model_path: "logs/all/noPU/tripnnpu/Cminus1" # set to the directory containing `checkpoint_##.tar` 
 # model_path: "save" # set to the directory containing `checkpoint_##.tar` 
-model_num: 200 # set to checkpoint number
-epoch_num: 200 # set to checkpoint number
+model_num: 50 # set to checkpoint number
+epoch_num: 50 # set to checkpoint number
 reload: False
 
 # mixed-precision training
