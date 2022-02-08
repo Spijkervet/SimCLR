@@ -57,6 +57,6 @@ data_pretrain: "all" #options: "all", "imbalanced"
 
 loss_pretrain: "TripletNNPULoss"
 # loss params
-# prior: 0.1
+prior: 0.1
 C: -1.
 
