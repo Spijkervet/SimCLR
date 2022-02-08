@@ -31,7 +31,7 @@ weight_decay: 1.0e-6 # "optimized using LARS [...] and weight decay of 10−6"
 # reload options
 model_path: "logs/all/noPU/tripnnpu/adjustnegative" # set to the directory containing `checkpoint_##.tar` 
 # model_path: "save" # set to the directory containing `checkpoint_##.tar` 
-model_num: 100 # set to checkpoint number
+# model_num: 100 # set to checkpoint number
 epoch_num: 100 # set to checkpoint number
 reload: False
 
