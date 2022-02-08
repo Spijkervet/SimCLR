@@ -70,6 +70,12 @@ def main(gpu, args):
             download=True,
             transform=TransformsSimCLR(size=args.image_size),
         )
+    elif args.dataset == "CIFAR100":
+        train_dataset = torchvision.datasets.CIFAR100(
+            args.dataset_dir,
+            download=True,
+            transform=TransformsSimCLR(size=args.image_size),
+        )
     elif args.dataset == "CIFAR10":
         train_dataset = torchvision.datasets.CIFAR10(
             args.dataset_dir,

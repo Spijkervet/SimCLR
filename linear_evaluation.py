@@ -138,6 +138,19 @@ if __name__ == "__main__":
             download=True,
             transform=TransformsSimCLR(size=args.image_size).test_transform,
         )
+    elif args.dataset == "CIFAR100":
+        train_dataset = torchvision.datasets.CIFAR100(
+            args.dataset_dir,
+            train=True,
+            download=True,
+            transform=TransformsSimCLR(size=args.image_size).test_transform,
+        )
+        test_dataset = torchvision.datasets.CIFAR100(
+            args.dataset_dir,
+            train=False,
+            download=True,
+            transform=TransformsSimCLR(size=args.image_size).test_transform,
+        )
     elif args.dataset == "CIFAR10":
         train_dataset = torchvision.datasets.CIFAR10(
             args.dataset_dir,
@@ -206,7 +219,10 @@ if __name__ == "__main__":
     simclr_model.eval()
 
     ## Logistic Regression
-    n_classes = 10  # CIFAR-10 / STL-10
+    if args.dataset in ["CIFAR10", "STL10"]:
+        n_classes = 10  # CIFAR-10 / STL-10
+    elif args.dataset == "CIFAR100":
+        n_classes = 100
     model = LogisticRegression(simclr_model.n_features, n_classes)
     model = model.to(args.device)
 
