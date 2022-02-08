@@ -41,12 +41,22 @@ fp16_opt_level: "O2"
 
 # logistic regression options
 logistic_batch_size: 256
-logistic_epochs: 100
+logistic_epochs: 100 #500
 
-############################# new added
-# new lossoptions for new Loss!!!
-# prior: 0.0
+
+######################################
 
 # option for full or imbalanced Pu Subset
-imbPU_data: "all" #options: "all", "balancedPU", "imbalanced", "imbalancedPU"
+data_pretrain: "all" #options: "all", "imbalanced"
+data_classif: "10class" #options: "binary", "PU"
+# PU ratio (labeled positives / all positives for binary PU setting)
+PU_ratio: 0.2
+
+############################################
+# select pretrain-loss function specified in simclr/modules/new_loss.py
+
+loss_pretrain: "TripletNNPULoss"
+# loss params
+prior: 0.1
+C: -1.
 

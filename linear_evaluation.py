@@ -110,12 +110,19 @@ def test(args, loader, simclr_model, model, criterion, optimizer):
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser(description="SimCLR")
-    config = yaml_config_hook("./config/config.yaml")
+
+    parser.add_argument("-c", "--config", type=str, required=True)
+    args = parser.parse_args()
+
+    # config = yaml_config_hook("./config/config_tripnnpu.yaml")
+    config = yaml_config_hook(f"./config/{args.config}.yaml")
     for k, v in config.items():
         parser.add_argument(f"--{k}", default=v, type=type(v))
 
     args = parser.parse_args()
+
     args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if args.dataset == "STL10":
@@ -144,6 +151,28 @@ if __name__ == "__main__":
             download=True,
             transform=TransformsSimCLR(size=args.image_size).test_transform,
         )
+
+        # if args.imbPU_data == "imbalanced":
+            
+        #     idxs = []
+        #     idxtargets_up = []
+        #     for cls in range(10):
+        #         idxs_cls = [i for i in range(len(train_dataset.targets)) if train_dataset.targets[i]==cls]
+        #         if cls in [0, 1, 8, 9]:
+        #             idxs_cls = idxs_cls[:750]
+        #             idxtargets_up_cls = idxs_cls[:int((1-0.2)*len(idxs_cls))] # change here 0.2 for any other prop of labeled positive / all positives
+        #         idxs.extend(idxs_cls)
+        #         idxs.sort()
+        #         idxtargets_up.extend(idxtargets_up_cls)
+        #         idxtargets_up.sort()
+        #     idxtargets_up = torch.tensor(idxtargets_up)
+
+        #     train_dataset.targets = torch.tensor(train_dataset.targets)
+        #     train_dataset.targets[idxtargets_up] = 0
+        #     train_datasubset_pu = torch.utils.data.Subset(train_dataset, idxs) 
+        # elif args.imbPU_data == "all":
+        #     train_datasubset_pu = train_dataset
+    
     else:
         raise NotImplementedError
 

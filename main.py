@@ -15,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 # SimCLR
 from simclr import SimCLR
-from simclr.modules import NT_Xent, get_resnet
+from simclr.modules import NT_Xent, get_resnet, MedianTripletHead, SmoothTripletHead, TripletNNPULoss, HeadNNPU
 from simclr.modules.transformations import TransformsSimCLR
 from simclr.modules.sync_batchnorm import convert_model
 
@@ -76,25 +76,49 @@ def main(gpu, args):
             download=True,
             transform=TransformsSimCLR(size=args.image_size),
         )
+        
+        # just take 750 instead of 5000 of the 4 vehicle (positive) classes --> P:U ratio 3k : 30k
+        if args.data_pretrain == "imbalanced" or args.data_classif == "PU":
+            idxs = []
+            idxtargets_up = []
+            for cls in range(10):
+                idxs_cls = [i for i in range(len(train_dataset.targets)) if train_dataset.targets[i]==cls]
+                if cls in [0, 1, 8, 9]:
+                    if args.data_pretrain == "imbalanced":
+                        idxs_cls = idxs_cls[:750]
+                    if args.data_classif == "PU":  
+                        idxtargets_up_cls = idxs_cls[:int((1-args.PU_ratio)*len(idxs_cls))] # change here 0.2 for any other prop of labeled positive / all positives
+                idxs.extend(idxs_cls)
+                idxs.sort()
+                if args.data_classif == "PU":  
+                    idxtargets_up.extend(idxtargets_up_cls)
+                    idxtargets_up.sort()
+            idxtargets_up = torch.tensor(idxtargets_up)
+
+            train_dataset.targets = torch.tensor(train_dataset.targets)
+            if args.data_classif == "PU":  
+                train_dataset.targets[idxtargets_up] = 0
+            train_datasubset_pu = torch.utils.data.Subset(train_dataset, idxs) 
+        elif args.data_pretrain == "all":
+            train_datasubset_pu = train_dataset
     else:
         raise NotImplementedError
 
     if args.nodes > 1:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
-            train_dataset, num_replicas=args.world_size, rank=rank, shuffle=True
+            train_datasubset_pu, num_replicas=args.world_size, rank=rank, shuffle=True #train_dataset,
         )
     else:
         train_sampler = None
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset,
+        train_datasubset_pu, #train_dataset,
         batch_size=args.batch_size,
         shuffle=(train_sampler is None),
         drop_last=True,
         num_workers=args.workers,
-        sampler=train_sampler,
+        sampler=train_sampler
     )
-
     # initialize ResNet
     encoder = get_resnet(args.resnet, pretrained=False)
     n_features = encoder.fc.in_features  # get dimensions of fc layer
@@ -110,7 +134,16 @@ def main(gpu, args):
 
     # optimizer / loss
     optimizer, scheduler = load_optimizer(args, model)
-    criterion = NT_Xent(args.batch_size, args.temperature, args.world_size)
+    if args.loss_pretrain == "NT_Xent":
+        criterion = NT_Xent(args.batch_size, args.temperature, args.world_size)
+    elif args.loss_pretrain == "MedianTripletHead":
+        criterion = MedianTripletHead()
+    elif args.loss_pretrain == "SmoothTripletHead":
+        criterion = SmoothTripletHead(k=args.batch_size-1)
+    elif args.loss_pretrain == "TripletNNPULoss":
+        criterion = TripletNNPULoss(prior=args.prior, k = args.batch_size//2, C=args.C)
+    elif args.loss_pretrain == "HeadNNPU":
+        criterion = HeadNNPU(prior=args.prior, latent_size=args.projection_dim)
 
     # DDP / DP
     if args.dataparallel:
@@ -157,7 +190,12 @@ def main(gpu, args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="SimCLR")
-    config = yaml_config_hook("./config/config.yaml")
+
+    parser.add_argument("-c", "--config", type=str, required=True)
+    args = parser.parse_args()
+
+    # config = yaml_config_hook("./config/config_tripnnpu.yaml")
+    config = yaml_config_hook(f"./config/{args.config}.yaml")
     for k, v in config.items():
         parser.add_argument(f"--{k}", default=v, type=type(v))
 
@@ -181,3 +219,4 @@ if __name__ == "__main__":
         mp.spawn(main, args=(args,), nprocs=args.gpus, join=True)
     else:
         main(0, args)
+    # print(args.prior)
