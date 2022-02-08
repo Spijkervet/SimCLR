@@ -105,10 +105,11 @@ def main(gpu, args):
             if args.data_classif == "PU":  
                 train_dataset.targets[idxtargets_up] = 0
             train_datasubset_pu = torch.utils.data.Subset(train_dataset, idxs) 
-        elif args.data_pretrain == "all":
-            train_datasubset_pu = train_dataset
     else:
         raise NotImplementedError
+
+    if args.data_pretrain == "all":
+            train_datasubset_pu = train_dataset
 
     if args.nodes > 1:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
