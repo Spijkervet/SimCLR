@@ -224,6 +224,11 @@ if __name__ == "__main__":
         n_classes = 10  # CIFAR-10 / STL-10
     elif args.dataset == "CIFAR100":
         n_classes = 100
+    
+    if args.data_classif in ["PU", "binary"]:
+        n_classes = 2
+
+    
     model = LogisticRegression(simclr_model.n_features, n_classes)
     model = model.to(args.device)
 
