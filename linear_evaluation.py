@@ -8,6 +8,7 @@ import numpy as np
 from simclr import SimCLR
 from simclr.modules import LogisticRegression, get_resnet
 from simclr.modules.transformations import TransformsSimCLR
+from simclr.modules.tfiwDataset import TFIWDataset
 
 from utils import yaml_config_hook
 
@@ -138,12 +139,26 @@ if __name__ == "__main__":
             download=True,
             transform=TransformsSimCLR(size=args.image_size).test_transform,
         )
+    
         test_dataset = torchvision.datasets.CIFAR10(
             args.dataset_dir,
             train=False,
             download=True,
             transform=TransformsSimCLR(size=args.image_size).test_transform,
         )
+
+    elif args.dataset == "TFIW":
+        train_dataset = TFIWDataset(
+            args.dataset_dir, #enter /Users/gaurav/Desktop/thesis-work/Datasets/T-1/train-faces/train
+            transform = TransformsSimCLR(size=args.image_size).test_transform,
+        )
+
+        test_dataset = TFIWDataset(
+            #args.dataset_dir,
+            "/Users/gaurav/Desktop/thesis-work/Datasets/T-1/train-faces/val",
+            transform = TransformsSimCLR(size=args.image_size).test_transform,
+        )
+
     else:
         raise NotImplementedError
 
@@ -174,7 +189,8 @@ if __name__ == "__main__":
     simclr_model.eval()
 
     ## Logistic Regression
-    n_classes = 10  # CIFAR-10 / STL-10
+    #n_classes = 10  # CIFAR-10 / STL-10
+    n_classes = 571 #TFIW has  571 families in the training dataset
     model = LogisticRegression(simclr_model.n_features, n_classes)
     model = model.to(args.device)
 
