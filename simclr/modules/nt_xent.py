@@ -31,9 +31,10 @@ class NT_Xent(nn.Module):
         """
         N = 2 * self.batch_size * self.world_size
 
-        z = torch.cat((z_i, z_j), dim=0)
         if self.world_size > 1:
-            z = torch.cat(GatherLayer.apply(z), dim=0)
+            z_i = torch.cat(GatherLayer.apply(z_i), dim=0)
+            z_j = torch.cat(GatherLayer.apply(z_j), dim=0)
+        z = torch.cat((z_i, z_j), dim=0)
 
         sim = self.similarity_f(z.unsqueeze(1), z.unsqueeze(0)) / self.temperature
 
