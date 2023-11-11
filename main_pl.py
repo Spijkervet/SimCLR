@@ -11,6 +11,7 @@ from simclr import SimCLR
 from simclr.modules import NT_Xent, get_resnet
 from simclr.modules.transformations import TransformsSimCLR
 from simclr.modules.sync_batchnorm import convert_model
+from simclr.modules.tfiwDataset import TFIWDataset
 
 from utils import yaml_config_hook
 
@@ -76,7 +77,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="SimCLR")
 
-    config = yaml_config_hook("./config/config.yaml")
+    config = yaml_config_hook("/Users/gaurav/Desktop/thesis-work/contrastive/SimCLR-Faces/config/config.yaml")
     for k, v in config.items():
         parser.add_argument(f"--{k}", default=v, type=type(v))
 
@@ -95,6 +96,13 @@ if __name__ == "__main__":
             download=True,
             transform=TransformsSimCLR(size=args.image_size),
         )
+
+    elif args.dataset == "TFIW":
+        train_dataset = TFIWDataset(
+            args.dataset_dir, #enter /Users/gaurav/Desktop/thesis-work/Datasets/T-1/train-faces/train
+            transform = TransformsSimCLR(size=args.image_size),
+        )
+
     else:
         raise NotImplementedError
     

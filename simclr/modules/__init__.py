@@ -3,3 +3,4 @@ from .logistic_regression import LogisticRegression
 from .lars import LARS
 from .resnet import get_resnet
 from .gather import GatherLayer
+#from simclr.modules.tfiwDataset import TFIWDataset

@@ -19,16 +19,23 @@ from simclr.modules import NT_Xent, get_resnet
 from simclr.modules.transformations import TransformsSimCLR
 from simclr.modules.sync_batchnorm import convert_model
 
+from simclr.modules.tfiwDataset import TFIWDataset
+from net import LResNet50E_IR, LResNet
+
 from model import load_optimizer, save_model
 from utils import yaml_config_hook
 
 
 def train(args, train_loader, model, criterion, optimizer, writer):
     loss_epoch = 0
+    print(enumerate(train_loader))
     for step, ((x_i, x_j), _) in enumerate(train_loader):
+    #for step, (x_i, x_j) in enumerate(train_loader):
+        #print(x_i)
+        #print(x_j)
         optimizer.zero_grad()
-        x_i = x_i.cuda(non_blocking=True)
-        x_j = x_j.cuda(non_blocking=True)
+        #x_i = x_i.cuda(non_blocking=True)
+        #x_j = x_j.cuda(non_blocking=True)
 
         # positive pair, with encoding
         h_i, h_j, z_i, z_j = model(x_i, x_j)
@@ -76,6 +83,13 @@ def main(gpu, args):
             download=True,
             transform=TransformsSimCLR(size=args.image_size),
         )
+
+    elif args.dataset == "TFIW":
+        train_dataset = TFIWDataset(
+            args.dataset_dir, #enter /Users/gaurav/Desktop/thesis-work/Datasets/T-1/train-faces/all/train
+            transform = TransformsSimCLR(size=args.image_size),
+        )
+
     else:
         raise NotImplementedError
 
@@ -96,8 +110,10 @@ def main(gpu, args):
     )
 
     # initialize ResNet
-    encoder = get_resnet(args.resnet, pretrained=False)
-    n_features = encoder.fc.in_features  # get dimensions of fc layer
+    #encoder = get_resnet(args.resnet, pretrained=False)
+    encoder = LResNet50E_IR(is_gray=False)
+    n_features = 256 #encoder.fc.in_features  # get dimensions of fc layer
+    print(encoder)
 
     # initialize model
     model = SimCLR(encoder, args.projection_dim, n_features)
