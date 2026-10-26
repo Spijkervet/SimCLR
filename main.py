@@ -31,9 +31,10 @@ def train(args, train_loader, model, criterion, optimizer, writer):
         x_j = x_j.cuda(non_blocking=True)
 
         # positive pair, with encoding
-        h_i, h_j, z_i, z_j = model(x_i, x_j)
+        with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=args.bf16):
+            h_i, h_j, z_i, z_j = model(x_i, x_j)
 
-        loss = criterion(z_i, z_j)
+        loss = criterion(z_i.float(), z_j.float())
         loss.backward()
 
         optimizer.step()
@@ -160,6 +161,7 @@ if __name__ == "__main__":
     config = yaml_config_hook("./config/config.yaml")
     for k, v in config.items():
         parser.add_argument(f"--{k}", default=v, type=type(v))
+    parser.add_argument("--bf16", action="store_true", help="train with bfloat16 autocast")
 
     args = parser.parse_args()
 
